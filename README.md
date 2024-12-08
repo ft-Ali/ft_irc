@@ -11,6 +11,4 @@
 | **7. Partie bonus**          | - Implémentation du bot IRC.<br>- Envoi de fichiers.                                                                    | Ensemble         | 9-12 heures (1 jour)    | Optionnel : Réalisé uniquement si la partie obligatoire est terminée.                         |
 | **8. Finalisation et rendu** | - Nettoyage du code.<br>- Préparation du dépôt Git.<br>- Répétition pour la soutenance.                                  | Ensemble         | 9 heures (1 jour)       | Vérifiez que tout est conforme à la norme C++98 et prêt pour l’évaluation.                    |
 
----
 
-## **Structure suggérée des fichiers**
