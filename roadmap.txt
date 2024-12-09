@@ -1,0 +1,10 @@
+# Etape 1:
+
+
+
+------------- Setup server -------------
+
+1. Start server / socket with sockaddr struct 
+2. listen
+3. accept with struct pollfd struct
+4. 
