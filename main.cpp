@@ -9,11 +9,6 @@ int main (int c, char **v)
 	else {
 		Server server(atoi(v[1]), v[2]);
 		server.init();
-		server.listen();
-		server.accept();
-		server.read();
-		server.send();
-		server.close();
 	}
 
 

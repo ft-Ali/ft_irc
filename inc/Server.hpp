@@ -6,7 +6,7 @@
 /*   By: alsiavos <alsiavos@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/09 11:14:11 by alsiavos          #+#    #+#             */
-/*   Updated: 2024/12/09 14:42:43 by alsiavos         ###   ########.fr       */
+/*   Updated: 2024/12/09 15:32:49 by alsiavos         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,11 +34,6 @@ class Server {
 		Server(int port);
 		~Server();
 		void init();
-		void listen();
-		void accept();
-		void read();
-		void send();
-		void close();
 };
 
 

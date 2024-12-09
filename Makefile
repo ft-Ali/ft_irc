@@ -1,4 +1,4 @@
-NAME        =   IRC
+NAME        =   ircserv
 
 CC          =   c++
 
