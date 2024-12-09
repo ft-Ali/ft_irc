@@ -7,7 +7,7 @@ Server::~Server() {
 }
 
 void Server::listen() {
-	
+
 }
 
 void Server::init() {
