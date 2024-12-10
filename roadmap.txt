@@ -42,4 +42,79 @@ INVITE: Invite a client to an invite-only channel (mode +i)
 TOPIC: Change the channel topic in a mode +t channel
 Channel moderators are identified by the channel member prefix ('@' for standard channel operators, '%' for halfops) next to their nickname whenever it is associated with a channel (e.g. replies to the NAMES, WHO, and WHOIS commands).
 *************************************************************************************************************************************************
-          
+
+************************************************MESHMESH NOTES************************************************************************************
+La création d’un serveur pour ton projet IRC nécessite une approche méthodique. Voici les étapes clés à suivre, organisées de manière progressive pour que tu puisses construire ton serveur solidement :
+
+1. Mise en place du serveur de base
+a. Choisir un port pour ton serveur
+Par défaut, les serveurs IRC utilisent le port 6667.
+Tu peux définir ce port dans ton serveur pour qu’il écoute les connexions entrantes.
+b. Créer un socket serveur
+Utilise les bibliothèques réseau standards (comme <sys/socket.h> sous Linux).
+Étapes principales :
+Créer un socket (type TCP, protocole IPv4).
+Lier le socket à une adresse IP et un port (avec bind).
+Mettre le socket en écoute (listen).
+Accepter les connexions entrantes (accept).
+2. Gérer les connexions multiples
+a. Gestion des clients
+Implémente une structure pour suivre les clients connectés :
+Socket de chaque client.
+Adresse IP et port associés (optionnel pour le logging).
+État de la connexion (actif, en attente, etc.).
+b. Implémenter une boucle d’écoute
+Utilise des fonctions comme select, poll, ou epoll pour gérer plusieurs clients simultanément.
+Avantages :
+Permet d’écouter plusieurs sockets sans bloquer.
+Traite les événements comme l’arrivée de nouveaux messages ou la fermeture d’une connexion.
+3. Recevoir et envoyer des messages
+Réception :
+Lis les données envoyées par les clients à travers le socket avec recv.
+Stocke ces données pour analyse ultérieure (par exemple, parsing des messages IRC).
+Envoi :
+Utilise send pour transmettre des messages aux clients.
+Implémente une fonction pour envoyer un message à un seul client ou à plusieurs (broadcast).
+4. Gestion des clients connectés
+Implémente des actions basiques pour gérer les clients :
+Accepter de nouvelles connexions : ajoute-les à une liste ou un conteneur.
+Détecter les déconnexions : supprime les clients inactifs.
+Associer des données utilisateur : pseudonymes (NICK), canaux rejoints, etc.
+5. Structurer les composants du serveur
+Divise ton serveur en modules ou classes pour une meilleure organisation :
+
+SocketServer : gestion des sockets et connexions.
+ClientManager : suivi des clients et de leurs états.
+ChannelManager : gestion des canaux (channels).
+MessageHandler : réception et envoi des messages.
+6. Ajouter un protocole de communication
+Même si tu ne veux pas encore gérer les commandes IRC, prévois :
+
+Une fonction pour parser les messages reçus (diviser en commande, arguments, etc.).
+Une gestion minimale des réponses (par exemple, renvoyer une erreur si une commande est malformée).
+7. Tester le serveur
+Tester les connexions :
+
+Vérifie que le serveur accepte les connexions depuis un client basique (comme Telnet) :
+bash
+Copy code
+telnet localhost 6667
+Envoie des messages simples et observe les réponses.
+Tester avec un client IRC existant :
+
+Utilise un client comme HexChat ou WeeChat pour vérifier que le serveur accepte les connexions.
+Assure-toi que plusieurs utilisateurs peuvent se connecter simultanément.
+8. Ajouter des fonctionnalités avancées
+Une fois le serveur fonctionnel à un niveau basique :
+
+Gère les délais et inactivités (timeout pour déconnecter un client inactif).
+Implémente un système de logging pour surveiller les connexions et les messages.
+Prépare l’intégration des commandes IRC (en dernier, dans ton cas).
+Étapes principales récapitulées :
+Initialisation du socket serveur (écoute sur un port).
+Gestion des connexions multiples (acceptation et suivi des clients).
+Échange de messages entre le serveur et les clients.
+Organisation en modules pour garder une structure claire.
+Tests progressifs avec des clients simples, puis des clients IRC.
+Avec cette progression, tu pourras construire un serveur IRC robuste et prêt à accueillir les fonctionnalités avancées comme les canaux et les commandes.
+*************************************************************************************************************************************************
