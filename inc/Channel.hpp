@@ -1,6 +1,6 @@
 #include "../inc/Server.hpp"
 
-class Channels{
+class Channel{
 	private:
 		
 

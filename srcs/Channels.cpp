@@ -1,1 +1,1 @@
-#include "../inc/Channels.hpp"
+#include "../inc/Channel.hpp"
