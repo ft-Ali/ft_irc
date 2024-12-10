@@ -1,0 +1,36 @@
+	1. Setup de base
+		Lire le RFC 1459 pour comprendre le protocole IRC.
+		Créer une architecture minimale :
+		Classe Server (gère les connexions).
+		Classe Client (représente chaque utilisateur).
+		Classe Channel (pour les salons de discussion).
+
+	2. Mise en place du serveur
+		Initialiser une socket : écouter sur un port (par ex. : 6667).
+		Accepter les connexions des clients.
+		Gérer les messages via une boucle principale (réception, traitement, envoi).
+
+	3. Gestion des utilisateurs
+		Authentification basique (enregistrement de pseudo).
+		Stocker les clients connectés (std::map avec pseudo/IP).
+		Implémenter des réponses simples (PING/PONG pour maintenir la connexion).
+
+	4. Gestion des channels
+		Créer des channels à la demande (JOIN).
+		Stocker les utilisateurs dans les channels.
+		Diffuser les messages aux membres d’un channel.
+		Permettre de quitter un channel (PART).
+
+	5. Implémentation des commandes IRC
+		Priorité : JOIN, PART, PRIVMSG, NICK.
+		Ajouter progressivement d’autres commandes comme MODE, TOPIC, etc.
+
+	6. Tests et validation
+		Vérifier les connexions simultanées.
+		Tester les interactions client-serveur avec un client IRC existant (ex. : HexChat).
+		Gérer les déconnexions et erreurs.
+		
+	7. Optimisations finales
+		Implémenter les permissions (opérateurs, modes de channel).
+		Ajouter des fonctionnalités avancées (BAN, KICK, etc.).
+		Sécuriser les connexions (SSL/TLS).
