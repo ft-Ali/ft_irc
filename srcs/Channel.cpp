@@ -1,4 +1,4 @@
-#include "../inc/Channel.hpp"
+/* #include "../inc/Channel.hpp"
 
 		Channel::Channel(Client *client, std::string const &ChannelName, const std::string key) : _name(ChannelName), _topic(""), _key(key), _invitOnly(false), _editTopic(false), _sizeChannel(0){
 			std::time_t time = std::time(nullptr);
@@ -71,3 +71,4 @@ bool Channel::checkWhiteList(Client *client){}
 bool Channel::checkBanList(Client *client){}
 
 
+ */

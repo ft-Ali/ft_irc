@@ -6,7 +6,7 @@
 /*   By: alsiavos <alsiavos@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/09 11:14:11 by alsiavos          #+#    #+#             */
-/*   Updated: 2024/12/11 16:36:17 by alsiavos         ###   ########.fr       */
+/*   Updated: 2024/12/11 16:39:21 by alsiavos         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,13 +26,13 @@
 #include <vector>
 #include <poll.h>
 #include <map>
+#include <stdlib.h>
 #include <csignal>
+#include <stdbool.h>
 
-
-/* class Client {
+class Client{
 	
 };
-
 
 // struct pollfd {
 // 	int     fd; //-> file descriptor
