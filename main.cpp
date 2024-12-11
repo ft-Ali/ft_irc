@@ -1,4 +1,5 @@
 #include "inc/Server.hpp"
+#include "inc/Channel.hpp"
 
 int main (int c, char **v)
 {

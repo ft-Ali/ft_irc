@@ -6,7 +6,7 @@
 /*   By: alsiavos <alsiavos@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/09 11:14:11 by alsiavos          #+#    #+#             */
-/*   Updated: 2024/12/11 16:15:43 by alsiavos         ###   ########.fr       */
+/*   Updated: 2024/12/11 16:36:17 by alsiavos         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,9 +33,6 @@
 	
 };
 
-class Channel {
-	
-}; */
 
 // struct pollfd {
 // 	int     fd; //-> file descriptor
