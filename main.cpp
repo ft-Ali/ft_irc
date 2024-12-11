@@ -8,9 +8,14 @@ int main (int c, char **v)
 	}
 	else {
 		Server server(atoi(v[1]), v[2]);
-		server.init();
-	}
+        signal(SIGINT, server.signalHandler);
+        signal(SIGQUIT, server.signalHandler);
+        // std::cout << "Server started mdp " << v[2] << std::endl;
+        server.serverInit();
+        server.serverLoop();
 
+        
+	}
 
 	return 0;
 }
