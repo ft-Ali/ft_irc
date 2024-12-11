@@ -1,16 +1,18 @@
 #include "inc/Server.hpp"
+#include "inc/Channel.hpp"
 
 int main (int c, char **v)
 {
-	if(c != 3) {
-		std::cout << "Usage: " << v[0] << " <port> <password>" << std::endl;
-		return 1;
-	}
-	else {
-		Server server(atoi(v[1]), v[2]);
-		server.init();
-	}
+	(void)c;
+	(void)v;
+	Channel channel("&BOnj-gf");
 
+	try{
+	channel.parseChannelName();
+	}
+	catch (std::exception &e){
+		std::cerr << e.what();
+	}
 
 	return 0;
 }
