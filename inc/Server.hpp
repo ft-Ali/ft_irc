@@ -6,7 +6,7 @@
 /*   By: alsiavos <alsiavos@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/09 11:14:11 by alsiavos          #+#    #+#             */
-/*   Updated: 2024/12/11 16:39:21 by alsiavos         ###   ########.fr       */
+/*   Updated: 2024/12/12 22:04:25 by alsiavos         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,6 +50,9 @@ class Server {
 		// std::vector<Channel> channels;
 		std::map<int, bool> _authenticatedClients; //-> map of client fds and authentication status
 		std::vector<struct pollfd> fds; //-> vector of pollfd
+		std::map<int, std::string> _clientNicks; //-> map of client fds and nicks
+		std::map<int, bool> _clientRegistered; //-> map of client fds and registration status
+		std::map<int, std::string> _clientUsers; //-> map of client fds and users
 	public:
 		Server(int port, std::string password) : _port(port), _password(password), _serSocketFd(-1) {
 			if(instance != NULL) {
@@ -68,6 +71,9 @@ class Server {
 		void handleClientMessage(int i);
 		bool authenticateClient(int clientFd, const std::string& message, size_t i);
 		static void signalHandler(int signal);
+		void handleUser(int clientFd);
+		void handleNick(int clientFd, const std::string& message);
+		void handlePass(int clientFd, const std::string& message, size_t i);
 		void closeServer();
 		// void listen();
 		// void accept();
