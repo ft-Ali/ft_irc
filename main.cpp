@@ -1,17 +1,18 @@
-#include "inc/Server.hpp"
+// #include "inc/Server.hpp"
 #include "inc/Channel.hpp"
 
 int main (int c, char **v)
 {
 	(void)c;
 	(void)v;
-	Channel channel("&BOnj-gf");
+    Client client("eugene");
+	
 
 	try{
-	channel.parseChannelName();
-	}
+        Channel channel(&client ,"#BOnj-gf");	}
 	catch (std::exception &e){
 		std::cerr << e.what();
+        // exit(0);
 	}
 
 	return 0;

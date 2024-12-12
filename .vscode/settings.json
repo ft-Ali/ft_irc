@@ -5,5 +5,7 @@
 	"files.exclude": {
     "**/*.o": true,       // Exclut tous les fichiers .o
     "**/*.d": true // Exclut un fichier .c spécifique
-  }
+  }  
+
 }
+
