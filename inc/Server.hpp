@@ -6,7 +6,7 @@
 /*   By: plangloi <plangloi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/09 11:14:11 by alsiavos          #+#    #+#             */
-/*   Updated: 2024/12/13 16:40:03 by plangloi         ###   ########.fr       */
+/*   Updated: 2024/12/13 16:46:19 by plangloi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,7 +54,7 @@ class Server {
 		std::map<int, std::string> _clientNicks; //-> map of client fds and nicks
 		std::map<int, bool> _clientRegistered; //-> map of client fds and registration status
 		std::map<int, std::string> _clientUsers; //-> map of client fds and users
-		// std::vector<Channel *> _channels; //-> vector of channels
+		std::vector<Channel *> _channels; //-> vector of channels
 		
 	public:
 		Server(int port, std::string password) : _port(port), _password(password), _serSocketFd(-1) {
@@ -79,7 +79,7 @@ class Server {
 		void handlePass(int clientFd, const std::string& message, size_t i);
 		void processJoin(std::string Client, const std::string& message);
 		void closeServer();
-		void cmdJoin(const std::string &nameChannel, std::string &key, std::string &nameMembers);
+		void cmdJoin(std::string &nameChannel, std::string &key, std::string &nameMembers);
 		bool channelExist(std::vector<Channel*> &vec, const std::string &name);
 		void checkRestriction(Channel channel, Client client, std::string &key);
 		Channel *getChannelByName(std::string &name);

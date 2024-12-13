@@ -59,6 +59,8 @@ std::string Channel::getCreationTime() const{
 
 std::string Channel::getKey(){return this->_key;}
 
+std::string Channel::getName(){return this->_name;}
+
 /*******************************ADD******************************/
 void Channel::addMember(std::vector<Client*> &vec, Client *client){
 

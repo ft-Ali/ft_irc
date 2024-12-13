@@ -32,6 +32,7 @@ class Channel{
 		Channel(Client *client, std::string const &ChannelName);
 		
 		void parseChannelName();
+		std::string getName();
 		bool isOnList(const std::vector<Client*>& vec, Client *client);
 
 		bool getInvitOnly();//-i +i 

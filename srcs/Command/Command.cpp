@@ -1,7 +1,7 @@
 #include "../inc/Channel.hpp"
 #include "../inc/Server.hpp"
 
-void	Server::cmdJoin(const std::string &nameChannel, std::string &key, std::string &nameMembers){
+void	Server::cmdJoin(std::string &nameChannel, std::string &key, std::string &nameMembers){
 	Client client;
 	
 		if(!channelExist(_channels, nameChannel))
@@ -18,7 +18,7 @@ void	Server::cmdJoin(const std::string &nameChannel, std::string &key, std::stri
 			checkRestriction(*channel, client, key);
 		}
 }
-Channel *Server::getChannelByName(const std::string &name){
+Channel *Server::getChannelByName(std::string &name){
 	 for (size_t i = 0; i < _channels.size(); ++i) {
         if (_channels[i]->getName() == name)
             return _channels[i];
