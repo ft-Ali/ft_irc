@@ -19,6 +19,7 @@ class Channel{
 		size_t _maxMembers;
 		bool _editTopic;
 		bool _invitOnly;
+		bool _isOperator;
 		std::string _modes;
 		std::vector<Client*> _members;
     	std::vector<Client*> _whiteList;

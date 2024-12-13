@@ -1,7 +1,7 @@
 #include "../inc/Channel.hpp"
 
 		Channel::Channel(Client *client,const std::string  &ChannelName) : _name(ChannelName), _topic(""), _key(""),
-		_maxMembers(0) , _editTopic(false), _invitOnly(false){
+		_maxMembers(0) , _editTopic(false), _invitOnly(false),_isOperator(false){
 		
 			parseChannelName();
 			_members.push_back(client);
@@ -10,7 +10,7 @@
 		};
 		
 		Channel::Channel(Client *client, const std::string  &ChannelName, const std::string &key) : _name(ChannelName), _topic(""), _key(key),
-		_maxMembers(0) , _editTopic(false), _invitOnly(false){
+		_maxMembers(0) , _editTopic(false), _invitOnly(false),_isOperator(false){
 
 			parseChannelName();
 			_members.push_back(client);
