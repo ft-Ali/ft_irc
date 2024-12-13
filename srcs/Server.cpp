@@ -1,7 +1,7 @@
 #include "../inc/Server.hpp"
 
 
-void Server::processJoin(std::string Client, const std::string& message) {
+/* void Server::processJoin(std::string Client, const std::string& message) {
     size_t spacePos = message.find(' ', 5);
     std::string channelName = message.substr(5, spacePos - 5);
     channelName.erase(channelName.find_last_not_of("\r\n") + 1);
@@ -12,7 +12,7 @@ void Server::processJoin(std::string Client, const std::string& message) {
         password.erase(password.find_last_not_of("\r\n") + 1);
     }
     cmdJoin(channelName, password, Client);
-}
+} */
 
 
 
@@ -39,16 +39,32 @@ void Server::handlePass(int clientFd, const std::string& message, size_t i) {
         std::string response = "PASS OK. Please provide NICK and USER.\n";
         send(clientFd, response.c_str(), response.size(), 0); // Send response to the client
         std::cout << "Client FD " << clientFd << " authenticated" << std::endl;
+
+        // Auto-send NICK and USER after PASS
+        if (_authenticatedClients[clientFd]) {
+            // Use ostringstream to generate a default nickname
+            std::ostringstream oss;
+            oss << "guest" << clientFd;
+            std::string nickname = oss.str();
+
+            const char* systemUser = getenv("USER");
+            std::string username = systemUser ? systemUser : "default_user"; // Default USER
+            _clientNicks[clientFd] = nickname;
+            _clientUsers[clientFd] = username;
+
+            // Send NICK and USER commands automatically
+            handleNick(clientFd, "NICK " + nickname + "\r\n");
+            handleUser(clientFd);
+        }
     } else {
         // Failed authentication
         std::string response = "Authentication failed. Disconnecting.\n";
         send(clientFd, response.c_str(), response.size(), 0); // Send response to the client
-        close(clientFd); // Close the connection
-        _authenticatedClients.erase(clientFd); // Remove the client from the authenticated list
-        fds.erase(fds.begin() + i); // Remove the client from the fds list
+        close(clientFd);
+        _authenticatedClients.erase(clientFd); // Remove client from authenticated clients
+        fds.erase(fds.begin() + i); // Remove client from fds
     }
 }
-
 
 // Function that handles the NICK command sent by the client.
 // This command allows the client to set their nickname.
@@ -83,24 +99,27 @@ void Server::handleNick(int clientFd, const std::string& message) {
 // - clientFd: The file descriptor of the client sending the USER command.
 
 void Server::handleUser(int clientFd) {
-    // Check if the client has set a nickname, otherwise ask for the nickname first
+    // Vérifie si le client a défini un NICK
     if (_clientNicks.find(clientFd) == _clientNicks.end() || _clientNicks[clientFd].empty()) {
         std::string response = "Please provide NICK first.\n";
         send(clientFd, response.c_str(), response.size(), 0);
         return;
     }
 
-    // Mark the client as fully registered after receiving USER command
-    std::string username = _clientUsers[clientFd];
+    
+    const char* systemUser = getenv("USER");
+    if (!systemUser) {
+        systemUser = getenv("LOGNAME");
+    }
+    std::string username = systemUser ? systemUser : "default_user";
+
+    _clientUsers[clientFd] = username;
     _clientRegistered[clientFd] = true;
 
-    // Send welcome message with the client's nickname and username
-    std::string welcome = ":localhost 001 " + _clientNicks[clientFd] + " :Welcome to the IRC Network " + _clientUsers[clientFd] + "\n";
+    std::string welcome = ":localhost 001 " + _clientNicks[clientFd] + " :Welcome to the IRC Network " + username + "\n";
     send(clientFd, welcome.c_str(), welcome.size(), 0);
 
-    // Send mode setting message (example)
-
-    std::cout << "Client FD " << clientFd << " (username: " << _clientUsers[clientFd] << ") fully registered." << std::endl;
+    std::cout << "Client FD " << clientFd << " (username: " << username << ") fully registered." << std::endl;
 }
 
 
@@ -189,63 +208,69 @@ void Server::handleClientMessage(int i) {
     std::string message(buffer);
 
     // Step 1: Handle PASS command if the client is not authenticated
-    if (!_authenticatedClients[clientFd]) {
+       if (!_authenticatedClients[clientFd]) {
         if (message.rfind("PASS ", 0) == 0) {
             handlePass(clientFd, message, i);
+
+            // Auto-send NICK and USER after PASS
+            if (_authenticatedClients[clientFd]) {
+                std::ostringstream oss;
+                oss << "guest" << clientFd;
+                std::string nickname = oss.str();
+
+                const char* systemUser = getenv("USER");
+                std::string username = systemUser ? systemUser : "default_user"; // Default USER
+                _clientNicks[clientFd] = nickname;
+                _clientUsers[clientFd] = username;
+
+                // Send NICK and USER commands automatically
+                handleNick(clientFd, "NICK " + nickname + "\r\n");
+                handleUser(clientFd);
+            }
         } else {
             std::string response = "Please provide a password using PASS <password>\n";
             send(clientFd, response.c_str(), response.size(), 0);
         }
         return;
     }
-    
+
     // Step 2: Handle NICK command
     if (message.rfind("NICK ", 0) == 0) {
         handleNick(clientFd, message);
         return;
     }
-
-    // Step 3: Handle USER command
-    if (message.rfind("USER ", 0) == 0) {
-        handleUser(clientFd);
-        return;
-    }
-
-    // If the client is not fully registered, ask them to complete the registration with NICK and USER
     if (!_clientRegistered[clientFd]) {
         if (message.rfind("USER ", 0) != 0) {
-            std::string response = "Please complete registration with NICK and USER.\n";
-            send(clientFd, response.c_str(), response.size(), 0);
+            // Si aucun USER n'est fourni, on utilise le USER du système
+            const char* systemUser = getenv("USER");
+            if (!systemUser) {
+                systemUser = getenv("LOGNAME");
+            }
+            std::string username = systemUser ? systemUser : "default_user";
+            _clientUsers[clientFd] = username;
+
+            handleUser(clientFd);
             return;
         }
     }
-
-    if(message.rfind("JOIN ", 0) == 0){
-        std::string clientName;
-        std::map<int , std::string>::iterator it = std::find(_clientNicks.begin(), _clientNicks.end(), clientFd);
-        if(it != _clientNicks.end())
-            clientName = it->second;
-        processJoin(clientName, message);
-        return;
-    }
-
-    // Step 4: Handle PING and QUIT commands
-    if (message.rfind("PING ", 0) == 0) {
+    // if(message.rfind("JOIN ", 0) == 0){
+    //     std::string clientName;
+    //     std::map<int , std::string>::iterator it = _clientNicks.find(clientFd);
+    //     if(it != _clientNicks.end())
+    //         clientName = it->second;
+    //     processJoin(clientName, message);
+    //     return;
+    // }
+     if (message.rfind("PING ", 0) == 0) {
         std::string pong = "PONG " + message.substr(5) + "\n";
         send(clientFd, pong.c_str(), pong.size(), 0);
         std::cout << "PONG sent to client FD " << clientFd << std::endl;
         return;
     }
-
-    if(message.rfind("JOIN ", 0) == 0){
-        std::string response = "JOIN\n";
-        send(clientFd, response.c_str(), response.size(), 0);
+      if (message.rfind("MODE ", 0) == 0) {
+        std::cout << "Client " << clientFd << " sent MODE, ignoring for now." << std::endl;
         return;
     }
-    // if (message.rfind("MODE ", 0) == 0) {
-    //     std::cout << "Client " << clientFd << " sent MODE, ignoring for now." << std::endl;
-    //     return;
-    // }
     if (message.rfind("QUIT", 0) == 0) {
         std::string response = "QUIT\n";
         send(clientFd, response.c_str(), response.size(), 0);
@@ -260,24 +285,36 @@ void Server::handleClientMessage(int i) {
 
     // Handle other messages for registered clients
     std::cout << "Message from client (" << clientFd << "): " << message << std::endl;
-    // std::string response = "Server received: " + message + "\n";
-    // send(clientFd, response.c_str(), response.size(), 0);
+    std::string response = "Server received: " + message + "\n";
+    send(clientFd, response.c_str(), response.size(), 0);
 }
 
 
 
 
 void Server::handleNewConnection() {
-	int clientFd = accept(_serSocketFd, NULL, NULL); // accept new connection
-	if (clientFd == -1) 
-		throw(std::runtime_error("error: accept() failed"));
-	struct pollfd client; // create new pollfd for new client
-	client.fd = clientFd; // set fd to clientFd
-	client.events = POLLIN; // set events to POLLIN
-	client.revents = 0; // set revents to 0
-	fds.push_back(client); // add new client to fds
-	_authenticatedClients[clientFd] = false; // set client as unauthenticated
-	std::cout << "New connected: FD " << clientFd << std::endl;
+    int clientFd = accept(_serSocketFd, NULL, NULL); // accept new connection
+    if (clientFd == -1) 
+        throw(std::runtime_error("error: accept() failed"));
+    
+    struct pollfd client;
+    client.fd = clientFd;
+    client.events = POLLIN;
+    fds.push_back(client);
+
+    std::cout << "New client connected: FD " << clientFd << std::endl;
+
+    // Automatically send PASS command with the provided password
+    if(_password.empty()) {
+        std::string response = "Please provide a password using PASS <password>\n";
+        send(clientFd, response.c_str(), response.size(), 0);
+        return;
+    }
+    else {
+        handlePass(clientFd, "PASS " + _password, fds.size() - 1);
+    }
+
+    
 }
 
 void Server::serverLoop() {
