@@ -1,6 +1,21 @@
 #include "../inc/Server.hpp"
 
 
+void Server::processJoin(std::string Client, const std::string& message) {
+    size_t spacePos = message.find(' ', 5);
+    std::string channelName = message.substr(5, spacePos - 5);
+    channelName.erase(channelName.find_last_not_of("\r\n") + 1);
+
+    std::string password;
+    if (spacePos != std::string::npos) {
+        password = message.substr(spacePos + 1);
+        password.erase(password.find_last_not_of("\r\n") + 1);
+    }
+    cmdJoin(channelName, password, Client);
+}
+
+
+
 // Function that handles the PASS command sent by the client.
 // This command is used to authenticate the client with a password.
 // - If the password is correct, the client is authenticated and can proceed with sending the NICK and USER commands.
@@ -48,7 +63,6 @@ void Server::handleNick(int clientFd, const std::string& message) {
     // Extract the nickname from the message, after "NICK "
     std::string nickname = message.substr(5);
     nickname.erase(nickname.find_last_not_of("\r\n") + 1); // Clean up the newline characters
-
     // Store the nickname for the client
     _clientNicks[clientFd] = nickname;
 
@@ -85,8 +99,6 @@ void Server::handleUser(int clientFd) {
     send(clientFd, welcome.c_str(), welcome.size(), 0);
 
     // Send mode setting message (example)
-    std::string mode = ":localhost MODE " + _clientNicks[clientFd] + " +i\n";
-    send(clientFd, mode.c_str(), mode.size(), 0);
 
     std::cout << "Client FD " << clientFd << " (username: " << _clientUsers[clientFd] << ") fully registered." << std::endl;
 }
@@ -186,7 +198,7 @@ void Server::handleClientMessage(int i) {
         }
         return;
     }
-
+    
     // Step 2: Handle NICK command
     if (message.rfind("NICK ", 0) == 0) {
         handleNick(clientFd, message);
@@ -208,6 +220,15 @@ void Server::handleClientMessage(int i) {
         }
     }
 
+    if(message.rfind("JOIN ", 0) == 0){
+        std::string clientName;
+        std::map<int , std::string>::iterator it = std::find(_clientNicks.begin(), _clientNicks.end(), clientFd);
+        if(it != _clientNicks.end())
+            clientName = it->second;
+        processJoin(clientName, message);
+        return;
+    }
+
     // Step 4: Handle PING and QUIT commands
     if (message.rfind("PING ", 0) == 0) {
         std::string pong = "PONG " + message.substr(5) + "\n";
@@ -216,6 +237,15 @@ void Server::handleClientMessage(int i) {
         return;
     }
 
+    if(message.rfind("JOIN ", 0) == 0){
+        std::string response = "JOIN\n";
+        send(clientFd, response.c_str(), response.size(), 0);
+        return;
+    }
+    // if (message.rfind("MODE ", 0) == 0) {
+    //     std::cout << "Client " << clientFd << " sent MODE, ignoring for now." << std::endl;
+    //     return;
+    // }
     if (message.rfind("QUIT", 0) == 0) {
         std::string response = "QUIT\n";
         send(clientFd, response.c_str(), response.size(), 0);
@@ -230,8 +260,8 @@ void Server::handleClientMessage(int i) {
 
     // Handle other messages for registered clients
     std::cout << "Message from client (" << clientFd << "): " << message << std::endl;
-    std::string response = "Server received: " + message + "\n";
-    send(clientFd, response.c_str(), response.size(), 0);
+    // std::string response = "Server received: " + message + "\n";
+    // send(clientFd, response.c_str(), response.size(), 0);
 }
 
 

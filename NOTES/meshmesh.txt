@@ -12,4 +12,8 @@
 - [x] Tester avec irssi.
 - [ ] Vérifier la gestion des erreurs et ajouter des messages d’erreur clairs.
 
+
+- Server doit envoyer nom du channel + client + check si mdp.
+- cmdJoin recupere (nameChannel, &mdp, client);
+
 *************************************************************************************************************************************************

@@ -6,7 +6,7 @@
 /*   By: alsiavos <alsiavos@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/09 11:14:11 by alsiavos          #+#    #+#             */
-/*   Updated: 2024/12/12 22:04:25 by alsiavos         ###   ########.fr       */
+/*   Updated: 2024/12/13 14:34:06 by alsiavos         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,11 +48,13 @@ class Server {
 		static Server* instance;
 		// std::vector<Client> clients; //list Fd et IP address clients
 		// std::vector<Channel> channels;
-		std::map<int, bool> _authenticatedClients; //-> map of client fds and authentication status
 		std::vector<struct pollfd> fds; //-> vector of pollfd
+		std::map<int, bool> _authenticatedClients; //-> map of client fds and authentication status
 		std::map<int, std::string> _clientNicks; //-> map of client fds and nicks
 		std::map<int, bool> _clientRegistered; //-> map of client fds and registration status
 		std::map<int, std::string> _clientUsers; //-> map of client fds and users
+		std::vector<Channel *> _channels; //-> vector of channels
+		
 	public:
 		Server(int port, std::string password) : _port(port), _password(password), _serSocketFd(-1) {
 			if(instance != NULL) {
@@ -74,6 +76,7 @@ class Server {
 		void handleUser(int clientFd);
 		void handleNick(int clientFd, const std::string& message);
 		void handlePass(int clientFd, const std::string& message, size_t i);
+		void processJoin(std::string Client, const std::string& message);
 		void closeServer();
 		// void listen();
 		// void accept();
