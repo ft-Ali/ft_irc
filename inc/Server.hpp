@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lmerveil <lmerveil@student.42.fr>          +#+  +:+       +#+        */
+/*   By: plangloi <plangloi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/09 11:14:11 by alsiavos          #+#    #+#             */
-/*   Updated: 2024/12/10 15:10:15 by lmerveil         ###   ########.fr       */
+/*   Updated: 2024/12/11 11:32:27 by plangloi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,12 +26,14 @@
 
 
 class Client {
-	
+	private:
+		std::string _name;
+	public :
+
+		Client(const std::string &name) : _name(name){};
 };
 
-class Channel {
-	
-};
+#pragma once
 
 // struct pollfd {
 // 	int     fd; //-> file descriptor
@@ -46,7 +48,7 @@ class Server {
 		int 		_serSocketFd;
 		static bool signal; //single ctrl-d -> send et double ctrl-d -> exit
 		std::vector<Client> clients; //list Fd et IP address clients
-		std::vector<Channel> channels;
+		// std::vector<Channel> channels;
 		std::vector<struct pollfd> fds; //-> vector of pollfd
 	public:
 		Server(int port) : _port(port) {};

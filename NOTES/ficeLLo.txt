@@ -1,25 +1,39 @@
-CLIENT:
+
 
 Nicknames are non-empty strings with the following restrictions:
 
-They MUST NOT contain any of the following characters: space (' ', 0x20), comma (',', 0x2C), asterisk ('*', 0x2A), question mark ('?', 0x3F), exclamation mark ('!', 0x21), at sign ('@', 0x40).
-They MUST NOT start with any of the following characters: dollar ('$', 0x24), colon (':', 0x3A).
-They MUST NOT start with a character listed as a channel type, channel membership prefix, or prefix listed in the IRCv3 multi-prefix Extension.
-They SHOULD NOT contain any dot character ('.', 0x2E).
-
-CHANNEL :
-
+---------------------VALIDE----------------------------------
 Channel names are strings (beginning with specified prefix characters). Apart from the requirement of the first character being a valid channel type prefix character; the only restriction on a channel name
-is that it may not contain any spaces (' ', 0x20), a control G / BELL ('^G', 0x07), or a comma (',', 0x2C) (which is used as a list item separator by the protocol).
-There are several types of channels used in the IRC protocol. The first standard type of channel is a regular channel, which is known to all servers that are connected to the network. The prefix character for this 
-type of channel is ('#', 0x23). The second type are server-specific or local channels, where the clients connected can only see and talk to other clients on the same server. 
+is that it may not contain any spaces (' ', 0x20), a control G / BELL ('^G', 0x07), or a comma (',', 0x2C) 
+(which is used as a list item separator by the protocol).
+
+# : Channel global, visible par tous les serveurs.
+& : Channel local, uniquement visible sur le serveur où il est créé.
+La longueur maximale d’un nom de channel est généralement limitée à 200 caractères par le RFC 2812 (une mise à jour du RFC 1459)
+
+/*NE PAS GERE MULTISERV*/
+There are several types of channels used in the IRC protocol. The first standard type of channel is a regular channel, 
+which is known to all servers that are connected to the network. The prefix character for this 
+type of channel is ('#', 0x23). The second type are server-specific or local channels, 
+where the clients connected can only see and talk to other clients on the same server. 
 The prefix character for this type of channel is ('&', 0x26). Other types of channels are described in the Channel Types section. 
+************************
 
-To create a new channel or become part of an existing channel, a user is required to join the channel using the JOIN command. If the channel doesn’t exist prior to joining, the channel is created and the creating user becomes 
+
+---------------------------------------------------------------
+
+
+
+
+
+To create a new channel or become part of an existing channel, a user is required to join the channel using the JOIN command.
+ If the channel doesn’t exist prior to joining, the channel is created and the creating user becomes 
 a channel operator. If the channel already exists, whether or not the client successfully joins that channel depends on the modes currently set on the channel. 
-For example, if the channel is set to invite-only mode (+i), the client only joins the channel if they have been invited by another user or they have been exempted from requiring an invite by the channel operators
+For example, if the channel is set to invite-only mode (+i), the client only joins the channel 
+if they have been invited by another user or they have been exempted from requiring an invite by the channel operators
 
-IRC servers may also define other levels of channel moderation. These can include ‘halfop’ (half operator), ‘protected’ (protected user/operator), ‘founder’ (channel founder), and any other positions the server wishes to define. 
+IRC servers may also define other levels of channel moderation. These can include ‘halfop’ (half operator), 
+‘protected’ (protected user/operator), ‘founder’ (channel founder), and any other positions the server wishes to define. 
 These moderation levels have varying privileges and can execute, and not execute, various channel management commands based on what the server defines.
 
 The commands which may only be used by channel moderators include:
@@ -28,4 +42,44 @@ KICK: Eject a client from the channel
 MODE: Change the channel’s modes
 INVITE: Invite a client to an invite-only channel (mode +i)
 TOPIC: Change the channel topic in a mode +t channel
-Channel moderators are identified by the channel member prefix ('@' for standard channel operators, '%' for halfops) next to their nickname whenever it is associated with a channel (e.g. replies to the NAMES, WHO, and WHOIS commands).
+Channel moderators are identified by the channel member prefix ('@' for standard channel operators, '%' for halfops) 
+next to their nickname whenever it is associated with a channel (e.g. replies to the NAMES, WHO, and WHOIS commands).
+
+  Un serveur NE DOIT PAS autoriser la création d'un nouveau canal si un autre
+   un canal avec le même nom court existe ; ou si un autre canal avec
+   le même nom court existait récemment ET l'un de ses membres est parti
+   en raison d'une division du réseau.
+
+    The channel flag 'a' defines an anonymous channel.  This means that
+   when a message sent to the channel is sent by the server to users,
+   and the origin is a user, then it MUST be masked.  To mask the
+   message, the origin is changed to "anonymous!anonymous@anonymous."
+   (e.g., a user with the nickname "anonymous", the username "anonymous"
+   and from a host called "anonymous.").  Because of this, servers MUST
+   forbid users from using the nickname "anonymous".  Servers MUST also
+   NOT send QUIT messages for users leaving such channels to the other
+   channel members but generate a PART message instead.
+
+   e caractère préfixe pour ce type de canal est ('&', 0x26).
+
+Ce canal est ce que l'on appelle un canal local. Les clients peuvent rejoindre 
+ce canal normalement, et le premier client qui rejoint un canal normal devient opérateur de canal ,
+mais le canal n'est pas conservé sur le réseau. En d'autres termes, 
+chaque serveur possède son propre ensemble de canaux locaux que les autres serveurs du réseau ne voient pas.
+
+Si un client sur le serveur A et un client sur le serveur B rejoignent le canal &info, ils ne pourront pas se voir 
+ni voir les messages que chacun publie sur le canal local de leur serveur &info. Cependant, si un client sur le serveur A et un autre client sur le serveur
+ A rejoignent le canal &info, ils pourront se voir et voir les messages que l'autre publie sur ce canal local.
+
+
+Les caractères autorisés incluent :
+Lettres (A-Z, a-z).
+Chiffres (0-9).
+Quelques caractères spéciaux, tels que :
+- (tiret).
+_ (souligné).
+[ et ] (crochets).
+{ et } (accolades).
+| (barre verticale).
+~ (tilde).
+^ (accent circonflexe).
