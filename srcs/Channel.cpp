@@ -1,4 +1,4 @@
-#include "../inc/Channel.hpp"
+ #include "../inc/Channel.hpp"
 
 		Channel::Channel(Client *client,const std::string  &ChannelName) : _name(ChannelName), _topic(""), _key(""),
 		_maxMembers(0) , _editTopic(false), _invitOnly(false),_isOperator(false){
@@ -57,16 +57,17 @@ std::string Channel::getCreationTime() const{
 	return time;
 }
 
+std::string Channel::getKey(){return this->_key;}
 
 /*******************************ADD******************************/
-void Channel::addMember(const std::vector<Client*>& vec, Client *client){
+void Channel::addMember(std::vector<Client*> &vec, Client *client){
 
 	std::vector<Client *>::const_iterator it = std::find(vec.begin(), vec.end(),client);
 
 	if(it != vec.end())
 		std::cout << "Client already set \n";
 	else
-		_members.push_back(client);
+		vec.push_back(client);
 }
 
 void Channel::addMode(char mode){
@@ -86,6 +87,9 @@ void Channel::addToWhiteList( Client *client){
 
 void Channel::addBanList( Client *client){
 	addMember(_banList, client);
+}
+void Channel::addListMember(Client *client){
+	addMember(_members, client);
 }
 
 /*******************************REMOVE***************************/
@@ -174,7 +178,4 @@ void Channel::parseChannelName(){
 		throw(std::invalid_argument("Inavlid channel name"));
 
 }
-
-
-
 

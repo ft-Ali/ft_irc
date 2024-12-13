@@ -3,16 +3,19 @@
 
 int main (int c, char **v)
 {
-	(void)c;
-	(void)v;
-    Client client("eugene");
-	
+	if(c != 3) {
+		std::cout << "Usage: " << v[0] << " <port> <password>" << std::endl;
+		return 1;
+	}
+	else {
+		Server server(atoi(v[1]), v[2]);
+        signal(SIGINT, server.signalHandler);
+        signal(SIGQUIT, server.signalHandler);
+        // std::cout << "Server started mdp " << v[2] << std::endl;
+        server.serverInit();
+        server.serverLoop();
 
-	try{
-        Channel channel(&client ,"#BOnj-gf");	}
-	catch (std::exception &e){
-		std::cerr << e.what();
-        // exit(0);
+        
 	}
 
 	return 0;

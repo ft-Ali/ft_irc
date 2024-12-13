@@ -50,7 +50,9 @@ class Channel{
 		bool checkOperatorList(Client *client);
 		
 		bool checkListMembers(Client *client);
-		void addMember(const std::vector<Client*>& vec, Client *client);
+		void addMember(std::vector<Client*>& vec, Client *client);
+		void addListMember(Client *client);
+
 		void removeMember(Client *client);
 		void removeClientList(std::vector<Client*>& vec, Client *client);
 		size_t getmaxMembers();

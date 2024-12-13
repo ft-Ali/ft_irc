@@ -1,5 +1,303 @@
 #include "../inc/Server.hpp"
 
+
+void Server::processJoin(std::string Client, const std::string& message) {
+    size_t spacePos = message.find(' ', 5);
+    std::string channelName = message.substr(5, spacePos - 5);
+    channelName.erase(channelName.find_last_not_of("\r\n") + 1);
+
+    std::string password;
+    if (spacePos != std::string::npos) {
+        password = message.substr(spacePos + 1);
+        password.erase(password.find_last_not_of("\r\n") + 1);
+    }
+    cmdJoin(channelName, password, Client);
+}
+
+
+
+// Function that handles the PASS command sent by the client.
+// This command is used to authenticate the client with a password.
+// - If the password is correct, the client is authenticated and can proceed with sending the NICK and USER commands.
+// - If the password is incorrect, the connection is closed for this client.
+
+// Parameters:
+// - clientFd: The file descriptor of the client sending the PASS command.
+// - message: The received message containing the password (the "PASS " command part is removed).
+// - i: The index of the client in the fds list (used to remove the client from fds when disconnecting).
+
+void Server::handlePass(int clientFd, const std::string& message, size_t i) {
+    // Extract the password from the message, after "PASS "
+    std::string password = message.substr(5); 
+    password.erase(password.find_last_not_of("\r\n") + 1); // Clean up the newline characters
+
+    // Check if the password is correct
+    if (password == _password) {
+        // Successful authentication
+        _authenticatedClients[clientFd] = true;
+        _clientRegistered[clientFd] = false; // Client is not fully registered yet
+        std::string response = "PASS OK. Please provide NICK and USER.\n";
+        send(clientFd, response.c_str(), response.size(), 0); // Send response to the client
+        std::cout << "Client FD " << clientFd << " authenticated" << std::endl;
+    } else {
+        // Failed authentication
+        std::string response = "Authentication failed. Disconnecting.\n";
+        send(clientFd, response.c_str(), response.size(), 0); // Send response to the client
+        close(clientFd); // Close the connection
+        _authenticatedClients.erase(clientFd); // Remove the client from the authenticated list
+        fds.erase(fds.begin() + i); // Remove the client from the fds list
+    }
+}
+
+
+// Function that handles the NICK command sent by the client.
+// This command allows the client to set their nickname.
+// - If the nickname is valid, it is stored for the client and the server sends a confirmation.
+// - If a nickname is already set, the server sends a response asking for the USER command.
+
+// Parameters:
+// - clientFd: The file descriptor of the client sending the NICK command.
+// - message: The received message containing the nickname (the "NICK " command part is removed).
+
+void Server::handleNick(int clientFd, const std::string& message) {
+    // Extract the nickname from the message, after "NICK "
+    std::string nickname = message.substr(5);
+    nickname.erase(nickname.find_last_not_of("\r\n") + 1); // Clean up the newline characters
+    // Store the nickname for the client
+    _clientNicks[clientFd] = nickname;
+
+    // Send response confirming the nickname
+    std::string response = ":" + nickname + " NICK " + nickname + "\n";
+    send(clientFd, response.c_str(), response.size(), 0);
+
+    std::cout << "Client FD " << clientFd << " set nickname to " << nickname << std::endl;
+}
+
+
+// Function that handles the USER command sent by the client.
+// This command is used to set the client's username and complete the registration process.
+// - If the NICK command was not provided first, the server sends an error message asking for the NICK.
+// - Once both NICK and USER commands are received, the client is considered fully registered.
+
+// Parameters:
+// - clientFd: The file descriptor of the client sending the USER command.
+
+void Server::handleUser(int clientFd) {
+    // Check if the client has set a nickname, otherwise ask for the nickname first
+    if (_clientNicks.find(clientFd) == _clientNicks.end() || _clientNicks[clientFd].empty()) {
+        std::string response = "Please provide NICK first.\n";
+        send(clientFd, response.c_str(), response.size(), 0);
+        return;
+    }
+
+    // Mark the client as fully registered after receiving USER command
+    std::string username = _clientUsers[clientFd];
+    _clientRegistered[clientFd] = true;
+
+    // Send welcome message with the client's nickname and username
+    std::string welcome = ":localhost 001 " + _clientNicks[clientFd] + " :Welcome to the IRC Network " + _clientUsers[clientFd] + "\n";
+    send(clientFd, welcome.c_str(), welcome.size(), 0);
+
+    // Send mode setting message (example)
+
+    std::cout << "Client FD " << clientFd << " (username: " << _clientUsers[clientFd] << ") fully registered." << std::endl;
+}
+
+
+
+
+Server* Server::instance = NULL; // initialize instance to NULL, (instance = global that point to actual server [ON])
+
+void Server::closeServer() {
+	if (_serSocketFd != -1) {
+        close(_serSocketFd);
+        std::cout << "Server socket closed." << std::endl;
+    }
+    for (size_t i = 0; i < fds.size(); ++i) {
+        close(fds[i].fd);
+        std::cout << "Client FD " << fds[i].fd << " closed." << std::endl;
+    }
+	
+	_authenticatedClients.clear();
+	fds.clear();
+	std::vector<struct pollfd>().swap(fds); // free memory of vector (clients)
+}
+
+bool Server::authenticateClient(int clientFd, const std::string& message, size_t i) {
+	if (message == _password) {
+		std::cout << "Client FD " << clientFd << " authenticated" << std::endl;
+		_authenticatedClients[clientFd] = true;
+		std::string response = "Welcome to the server!\n";
+		send(clientFd, response.c_str(), response.size(), 0);
+		return true; // client authenticated
+	}
+	else { // check if password is correct
+			std::cout << "Client FD " << clientFd << " failed to authenticate" << std::endl;
+			// std::cout << "password : '" << _password << "'"<<std::endl;
+			// std::cout << "message : '" << message << "'" <<  std::endl;
+			std::string response = "Authentication failed. Disconnecting.\n";
+			send(clientFd, response.c_str(), response.size(), 0); // send response to client
+			close(clientFd);
+			_authenticatedClients.erase(clientFd); // remove client from authenticated clients
+			fds.erase(fds.begin() + i); // remove client from fds
+			return false;
+		}
+}
+
+void Server::signalHandler(int signal) {
+    if(signal == SIGQUIT) {
+		std::cout << std::endl;
+		std::cout << "SIGQUIT received. Closing server." << std::endl;
+		instance->closeServer();
+		exit(0);
+	}
+	else if(signal == SIGINT) {
+		std::cout << std::endl;
+		std::cout << "SIGINT received. Closing server." << std::endl;
+		instance->closeServer();
+		exit(0);
+	}
+}
+
+
+// Function that processes incoming messages from clients.
+// - The function checks if the client is authenticated, then processes different IRC commands like PASS, NICK, USER.
+// - If the client is not fully registered, it asks for NICK and USER commands to complete the registration.
+// - It also handles PING and QUIT commands to maintain the connection or close it.
+
+// Parameters:
+// - i: Index of the client in the `fds` list (used to access the file descriptor).
+
+void Server::handleClientMessage(int i) {
+    char buffer[1024];
+    int clientFd = fds[i].fd;
+
+    // Receive the message from the client
+    int ret = recv(clientFd, buffer, sizeof(buffer) - 1, 0);
+    if (ret <= 0) {
+        // If the client disconnects, clean up and remove the client from the list
+        std::cout << "Client FD " << clientFd << " disconnected" << std::endl;
+        close(clientFd);
+        _authenticatedClients.erase(clientFd);
+        _clientNicks.erase(clientFd);
+        _clientRegistered.erase(clientFd);
+        fds.erase(fds.begin() + i);
+        return;
+    }
+
+    buffer[ret] = '\0'; // Null-terminate the received message
+    std::string message(buffer);
+
+    // Step 1: Handle PASS command if the client is not authenticated
+    if (!_authenticatedClients[clientFd]) {
+        if (message.rfind("PASS ", 0) == 0) {
+            handlePass(clientFd, message, i);
+        } else {
+            std::string response = "Please provide a password using PASS <password>\n";
+            send(clientFd, response.c_str(), response.size(), 0);
+        }
+        return;
+    }
+    
+    // Step 2: Handle NICK command
+    if (message.rfind("NICK ", 0) == 0) {
+        handleNick(clientFd, message);
+        return;
+    }
+
+    // Step 3: Handle USER command
+    if (message.rfind("USER ", 0) == 0) {
+        handleUser(clientFd);
+        return;
+    }
+
+    // If the client is not fully registered, ask them to complete the registration with NICK and USER
+    if (!_clientRegistered[clientFd]) {
+        if (message.rfind("USER ", 0) != 0) {
+            std::string response = "Please complete registration with NICK and USER.\n";
+            send(clientFd, response.c_str(), response.size(), 0);
+            return;
+        }
+    }
+
+    if(message.rfind("JOIN ", 0) == 0){
+        std::string clientName;
+        std::map<int , std::string>::iterator it = std::find(_clientNicks.begin(), _clientNicks.end(), clientFd);
+        if(it != _clientNicks.end())
+            clientName = it->second;
+        processJoin(clientName, message);
+        return;
+    }
+
+    // Step 4: Handle PING and QUIT commands
+    if (message.rfind("PING ", 0) == 0) {
+        std::string pong = "PONG " + message.substr(5) + "\n";
+        send(clientFd, pong.c_str(), pong.size(), 0);
+        std::cout << "PONG sent to client FD " << clientFd << std::endl;
+        return;
+    }
+
+    if(message.rfind("JOIN ", 0) == 0){
+        std::string response = "JOIN\n";
+        send(clientFd, response.c_str(), response.size(), 0);
+        return;
+    }
+    // if (message.rfind("MODE ", 0) == 0) {
+    //     std::cout << "Client " << clientFd << " sent MODE, ignoring for now." << std::endl;
+    //     return;
+    // }
+    if (message.rfind("QUIT", 0) == 0) {
+        std::string response = "QUIT\n";
+        send(clientFd, response.c_str(), response.size(), 0);
+        close(clientFd);
+        _authenticatedClients.erase(clientFd);
+        _clientNicks.erase(clientFd);
+        _clientRegistered.erase(clientFd);
+        fds.erase(fds.begin() + i);
+        std::cout << "Client FD " << clientFd << " disconnected" << std::endl;
+        return;
+    }
+
+    // Handle other messages for registered clients
+    std::cout << "Message from client (" << clientFd << "): " << message << std::endl;
+    // std::string response = "Server received: " + message + "\n";
+    // send(clientFd, response.c_str(), response.size(), 0);
+}
+
+
+
+
+void Server::handleNewConnection() {
+	int clientFd = accept(_serSocketFd, NULL, NULL); // accept new connection
+	if (clientFd == -1) 
+		throw(std::runtime_error("error: accept() failed"));
+	struct pollfd client; // create new pollfd for new client
+	client.fd = clientFd; // set fd to clientFd
+	client.events = POLLIN; // set events to POLLIN
+	client.revents = 0; // set revents to 0
+	fds.push_back(client); // add new client to fds
+	_authenticatedClients[clientFd] = false; // set client as unauthenticated
+	std::cout << "New connected: FD " << clientFd << std::endl;
+}
+
+void Server::serverLoop() {
+
+	while (true) {
+		if (poll(fds.data(), fds.size(), -1) == -1) // -1 -> infinite timeout
+			throw(std::runtime_error("error: poll() failed"));
+
+		for (size_t i = 0; i < fds.size(); ++i) { // loop through all fds (clients)
+			if (fds[i].revents & POLLIN) { // POLLIN -> there is data to read
+				if (fds[i].fd == _serSocketFd) { // new connection
+					handleNewConnection(); // accept new connection
+				} else {
+					handleClientMessage(i); // handle client message
+				}
+			}
+		}
+	}
+}
+
 void Server::serverInit() {
 
 	struct sockaddr_in 	addr;
@@ -25,4 +323,6 @@ void Server::serverInit() {
 	communication.events = POLLIN;
 	communication.revents = 0;
 	fds.push_back(communication);
+
+	std::cout << "Server started on port " << _port << std::endl;
 }
