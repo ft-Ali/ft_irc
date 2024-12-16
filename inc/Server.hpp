@@ -11,7 +11,7 @@
 /* ************************************************************************** */
 
 #ifndef SERVER_HPP
-#define SERVER_HPP
+# define SERVER_HPP
 
 #include <iostream>
 #include <sys/socket.h>
@@ -79,10 +79,12 @@ class Server {
 		void handlePass(int clientFd, const std::string& message, size_t i);
 		void processJoin(std::string Client, const std::string& message);
 		void closeServer();
-		void cmdJoin(std::string &nameChannel, std::string &key, std::string &nameMembers);
-		bool channelExist(std::vector<Channel*> &vec, const std::string &name);
-		void checkRestriction(Channel channel, Client client, std::string &key);
+		void cmdJoin(std::string &nameChannel, std::string &key, Client *client);
+		bool channelExist(const std::string& name);
+		void checkRestriction(Channel &channel, Client &client, std::string &key);
+		void handleSingleJoin(std::string &channelName, std::string &key, Client *client);
 		Channel *getChannelByName(std::string &name);
+		
 		// void listen();
 		// void accept();
 		// void read();
