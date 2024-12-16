@@ -27,44 +27,40 @@
 // - i: The index of the client in the fds list (used to remove the client from fds when disconnecting).
 
 void Server::handlePass(int clientFd, const std::string& message, size_t i) {
-    // Extract the password from the message, after "PASS "
-    std::string password = message.substr(5); 
+    // Extract the password from the message (remove the "PASS " part)
+    std::string password = message.substr(5);
     password.erase(password.find_last_not_of("\r\n") + 1); // Clean up the newline characters
 
     // Check if the password is correct
     if (password == _password) {
-        // Successful authentication
         _authenticatedClients[clientFd] = true;
-        _clientRegistered[clientFd] = false; // Client is not fully registered yet
-        std::string response = "PASS OK. Please provide NICK and USER.\n";
-        send(clientFd, response.c_str(), response.size(), 0); // Send response to the client
+        _clientRegistered[clientFd] = false;  // Client is not fully registered yet
+
         std::cout << "Client FD " << clientFd << " authenticated" << std::endl;
 
-        // Auto-send NICK and USER after PASS
-        if (_authenticatedClients[clientFd]) {
-            // Use ostringstream to generate a default nickname
-            std::ostringstream oss;
-            oss << "guest" << clientFd;
-            std::string nickname = oss.str();
+        // Retrieve the nickname (if initialized before)
+        std::string nickname = _clientNicks[clientFd];
 
-            const char* systemUser = getenv("USER");
-            std::string username = systemUser ? systemUser : "default_user"; // Default USER
-            _clientNicks[clientFd] = nickname;
-            _clientUsers[clientFd] = username;
+        std::string response = "PASS OK. Using nickname: " + nickname + ".\n";
+        send(clientFd, response.c_str(), response.size(), 0);
 
-            // Send NICK and USER commands automatically
-            handleNick(clientFd, "NICK " + nickname + "\r\n");
-            handleUser(clientFd);
-        }
+        // Automatically send NICK and USER after PASS
+        handleNick(clientFd, "NICK " + nickname + "\r\n");
+        handleUser(clientFd);
     } else {
-        // Failed authentication
+        _authenticatedClients[clientFd] = false;
+        // Failed authentication: Close the connection
         std::string response = "Authentication failed. Disconnecting.\n";
-        send(clientFd, response.c_str(), response.size(), 0); // Send response to the client
+        send(clientFd, response.c_str(), response.size(), 0);
         close(clientFd);
-        _authenticatedClients.erase(clientFd); // Remove client from authenticated clients
-        fds.erase(fds.begin() + i); // Remove client from fds
+        _authenticatedClients.erase(clientFd);
+        fds.erase(fds.begin() + i);
+        std::cout << "Client FD " << clientFd << " disconnected due to incorrect password." << std::endl;
     }
 }
+
+
+
 
 // Function that handles the NICK command sent by the client.
 // This command allows the client to set their nickname.
@@ -76,18 +72,29 @@ void Server::handlePass(int clientFd, const std::string& message, size_t i) {
 // - message: The received message containing the nickname (the "NICK " command part is removed).
 
 void Server::handleNick(int clientFd, const std::string& message) {
-    // Extract the nickname from the message, after "NICK "
-    std::string nickname = message.substr(5);
-    nickname.erase(nickname.find_last_not_of("\r\n") + 1); // Clean up the newline characters
-    // Store the nickname for the client
-    _clientNicks[clientFd] = nickname;
+    std::string newNickname;
 
-    // Send response confirming the nickname
-    std::string response = ":" + nickname + " NICK " + nickname + "\n";
+    if (message.length() > 5) {
+        newNickname = message.substr(5);
+        newNickname.erase(newNickname.find_last_not_of("\r\n") + 1);
+    } else {
+        std::string response = "ERROR: No nickname provided.\n";
+        send(clientFd, response.c_str(), response.size(), 0);
+        return;
+    }
+
+
+    std::string oldNickname = _clientNicks[clientFd];
+    _clientNicks[clientFd] = newNickname;
+
+    std::string response = ":" + oldNickname + " NICK " + newNickname + "\n";
     send(clientFd, response.c_str(), response.size(), 0);
 
-    std::cout << "Client FD " << clientFd << " set nickname to " << nickname << std::endl;
+    std::cout << "Client FD " << clientFd << " changed nickname from " 
+              << oldNickname << " to " << newNickname << std::endl;
 }
+
+
 
 
 // Function that handles the USER command sent by the client.
@@ -99,30 +106,25 @@ void Server::handleNick(int clientFd, const std::string& message) {
 // - clientFd: The file descriptor of the client sending the USER command.
 
 void Server::handleUser(int clientFd) {
-    // Vérifie si le client a défini un NICK
     if (_clientNicks.find(clientFd) == _clientNicks.end() || _clientNicks[clientFd].empty()) {
         std::string response = "Please provide NICK first.\n";
         send(clientFd, response.c_str(), response.size(), 0);
         return;
     }
 
-    
+    // Utilise le USER du système si disponible, sinon le NICK existant
     const char* systemUser = getenv("USER");
-    if (!systemUser) {
-        systemUser = getenv("LOGNAME");
-    }
-    std::string username = systemUser ? systemUser : "default_user";
-
+    std::string username = systemUser ? systemUser : _clientNicks[clientFd];
     _clientUsers[clientFd] = username;
     _clientRegistered[clientFd] = true;
 
-    std::string welcome = ":localhost 001 " + _clientNicks[clientFd] + " :Welcome to the IRC Network " + username + "\n";
+    std::string welcome = ":localhost 001 " + _clientNicks[clientFd] + 
+                          " :Welcome to the IRC Network, username: " + username + "\n";
     send(clientFd, welcome.c_str(), welcome.size(), 0);
 
-    std::cout << "Client FD " << clientFd << " (username: " << username << ") fully registered." << std::endl;
+    std::cout << "Client FD " << clientFd << " (nickname: " << _clientNicks[clientFd] 
+              << ", username: " << username << ") fully registered." << std::endl;
 }
-
-
 
 
 Server* Server::instance = NULL; // initialize instance to NULL, (instance = global that point to actual server [ON])
@@ -284,38 +286,45 @@ void Server::handleClientMessage(int i) {
     }
 
     // Handle other messages for registered clients
-    std::cout << "Message from client (" << clientFd << "): " << message << std::endl;
+    std::cout << "Message from client (" << "plouf" << "): " << message << std::endl;
     std::string response = "Server received: " + message + "\n";
     send(clientFd, response.c_str(), response.size(), 0);
 }
 
 
 
-
 void Server::handleNewConnection() {
-    int clientFd = accept(_serSocketFd, NULL, NULL); // accept new connection
+    int clientFd = accept(_serSocketFd, NULL, NULL); // Accept new connection
     if (clientFd == -1) 
         throw(std::runtime_error("error: accept() failed"));
-    
+
     struct pollfd client;
     client.fd = clientFd;
     client.events = POLLIN;
     fds.push_back(client);
 
-    std::cout << "New client connected: FD " << clientFd << std::endl;
+    // Récupère le USER du système
+    const char* systemUser = getenv("USER");
+    if (!systemUser) {
+        systemUser = getenv("LOGNAME"); // Fallback si USER n'est pas défini
+    }
 
-    // Automatically send PASS command with the provided password
-    if(_password.empty()) {
+    // Si USER n'est toujours pas trouvé, on assigne une valeur par défaut
+    std::string nickname = systemUser ? systemUser : "anonymous_user";
+
+    // Ajoute le nickname dans _clientNicks
+    _clientNicks[clientFd] = nickname;
+
+    // Authentifie automatiquement si un mot de passe est défini
+    if (!_password.empty()) {
+        handlePass(clientFd, "PASS " + _password, fds.size() - 1);
+    } 
+    else {
         std::string response = "Please provide a password using PASS <password>\n";
         send(clientFd, response.c_str(), response.size(), 0);
-        return;
     }
-    else {
-        handlePass(clientFd, "PASS " + _password, fds.size() - 1);
-    }
-
-    
 }
+
 
 void Server::serverLoop() {
 
