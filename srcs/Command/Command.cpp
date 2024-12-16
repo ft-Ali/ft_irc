@@ -1,58 +1,104 @@
-#include "../inc/Channel.hpp"
-#include "../inc/Server.hpp"
+#include "../../inc/Channel.hpp"
+#include "../../inc/Server.hpp"
 
-void	Server::cmdJoin(std::string &nameChannel, std::string &key, std::string &nameMembers){
-	Client client;
-	
-		if(!channelExist(_channels, nameChannel))
-		{
-			Channel *channel;
-			if(key.empty())
-				channel = new Channel(&client,nameChannel);
-			else if(!key.empty())
-				channel = new Channel(&client,nameChannel, key);
-			_channels.push_back(channel);
-		}
-		else{
-			Channel *channel = getChannelByName(nameChannel);
-			checkRestriction(*channel, client, key);
-		}
-}
-Channel *Server::getChannelByName(std::string &name){
-	 for (size_t i = 0; i < _channels.size(); ++i) {
-        if (_channels[i]->getName() == name)
-            return _channels[i];
-    }
-	return NULL;
-}
+// exemple command plusieur channel JOIN #channel1,#channel2,#channel3 key1,,key3
 
-void	Server::checkRestriction(Channel channel, Client client, std::string &key){
-	
-	if(channel.getInvitOnly()){
-		if(channel.checkWhiteList(&client))
-			channel.addListMember(&client);
+std::vector<std::string> splitArg(const std::string &str, char delimiter){
+	std::vector<std::string> result;
+	std::string name;
+
+	for (size_t i = 0; i < str.size(); i++)
+	{
+		if(str[i] == delimiter){
+			if(!name.empty()){
+				result.push_back(name);
+				name.clear();
+			}
+		}
 		else
-			std::cout << "Client not in invit list\n";
-		}
+			name+=str[i];
+	}
+	if(!name.empty())
+		result.push_back(name);
+
+return result;
+}
+
+void	Server::cmdJoin(std::string &Channelname, std::string &key, Client *client){
 	
-	if(!channel.getKey().empty()){
-		if(key != channel.getKey())
-			std::cout << "Invalid password\n";
+	std::vector<std::string> channels = splitArg(Channelname, ',');
+	std::vector<std::string> keyLists = splitArg(key, ',');
+	
+	// if (channels.size() != keyLists.size()) {
+    //     std::cout << "Error: Number of channels and keys do not match.\n";
+    //     return;
+    // }
+	
+	for(size_t i = 0; i < channels.size(); ++i){
+		std::string channelName = channels[i];
+		std::string keys = "";
+
+		if (i < keyLists.size())
+			key = keyLists[i];
+		handleSingleJoin(channelName, key, client);
+	}
 	}
 
-	if(channel.checkBanList(&client))
-		std::cout << "Cannot join u are ban bozo\n";
-	
-	if(_channels.size() >= channel.getmaxMembers())
-		std::cout << "Channel full\n";
+void Server::handleSingleJoin(std::string &channelName, std::string &key, Client *client){
 
-	channel.addListMember(&client);
+	if(!channelExist(channelName)){
+		Channel *channel;
+	std::cout << "Channel " << channelName << " created and join.\n";
+		if(key.empty())
+			channel = new Channel(client, channelName);
+		else
+			channel = new Channel(client, channelName, key);
+		_channels.push_back(*channel);
+		std::cout << "Channel " << channelName << " created and joined.\n";
+	}
+	else{
+		Channel channel = getChannelByName(channelName);
+		checkRestriction(channel, client, key);
+	}
 }
 
-bool	Server::channelExist(std::vector<Channel*> &vec, const std::string &name){
 
-		std::vector<Channel*>::iterator it = std::find(vec.begin(), vec.end(), name);
-		if(it != vec.end())
-			return true;
-		return false;
+void	Server::checkRestriction(Channel &channel, Client *client, std::string &key){
+	
+	if (channel.checkBanList(client)) {
+        std::cout << "Cannot join " << channel.getName() << ", you are banned.\n";
+        return;
+    }
+	if (channel.getInvitOnly() && !channel.checkWhiteList(client)) {
+        std::cout << "Cannot join " << channel.getName() << ", invite-only mode.\n";
+        return;
+    }
+	if (!channel.getKey().empty()) {
+        if (key != channel.getKey()) {
+            std::cout << "Invalid key for " << channel.getName() << ".\n";
+            return;
+        }
+    }
+    if (_channels.size() >= channel.getmaxMembers()) {
+        std::cout << "Cannot join " << channel.getName() << ", channel is full.\n";
+        return;
+    }
+	channel.addListMember(client);
+	std::cout << "Joined " << channel.getName() << " successfully.\n";
+}
+
+Channel Server::getChannelByName(std::string &name){
+	 for (size_t i = 0; i < _channels.size(); ++i) {
+        if (_channels[i].getName() == name)
+            return _channels[i];
+    }
+	return Channel(NULL, "");
+}
+
+bool Server::channelExist(const std::string& name) {
+    for (size_t i = 0; i < _channels.size(); ++i) {
+        if (_channels[i].getName() == name)
+            return true;
+    }
+    return false;
 }

@@ -1,5 +1,5 @@
 #include "inc/Server.hpp"
-// #include "inc/Channel.hpp"
+#include "inc/Channel.hpp"
 
 int main (int c, char **v)
 {
@@ -8,12 +8,16 @@ int main (int c, char **v)
 		return 1;
 	}
 	else {
+        try{
 		Server server(atoi(v[1]), v[2]);
         signal(SIGINT, server.signalHandler);
         signal(SIGQUIT, server.signalHandler);
         // std::cout << "Server started mdp " << v[2] << std::endl;
         server.serverInit();
-        server.serverLoop();
+        server.serverLoop();}
+        catch(const std::exception &e){
+            std::cerr << e.what() << std::endl;
+        }
 
         
 	}

@@ -6,12 +6,12 @@
 /*   By: alsiavos <alsiavos@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/09 11:14:11 by alsiavos          #+#    #+#             */
-/*   Updated: 2024/12/16 12:22:47 by alsiavos         ###   ########.fr       */
+/*   Updated: 2024/12/16 17:01:08 by alsiavos         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef SERVER_HPP
-#define SERVER_HPP
+# define SERVER_HPP
 
 #include <iostream>
 #include <sys/socket.h>
@@ -31,10 +31,7 @@
 #include <csignal>
 #include <stdbool.h>
 #include "Channel.hpp"
-class Client{
-	public:
-		Client(){};
-};
+
 
 // struct pollfd {
 // 	int     fd; //-> file descriptor
@@ -49,7 +46,7 @@ class Server {
 		int 		_serSocketFd;
 		static Server* instance;
 		// std::vector<Client> clients; //list Fd et IP address clients
-		// std::vector<Channel> channels;
+		std::vector<Channel> _channels;
 		std::vector<struct pollfd> fds; //-> vector of pollfd
 		std::map<int, bool> _authenticatedClients; //-> map of client fds and authentication status
 		std::map<int, std::string> _clientNicks; //-> map of client fds and nicks
@@ -80,10 +77,12 @@ class Server {
 		void handlePass(int clientFd, const std::string& message, size_t i);
 		void processJoin(std::string Client, const std::string& message);
 		void closeServer();
-		void cmdJoin(std::string &nameChannel, std::string &key, std::string &nameMembers);
-		// bool channelExist(std::vector<Channel*> &vec, const std::string &name);
-		// void checkRestriction(Channel channel, Client client, std::string &key);
-		// Channel *getChannelByName(std::string &name);
+		void cmdJoin(std::string &nameChannel, std::string &key, Client *client);
+		bool channelExist(const std::string& name);
+		void checkRestriction(Channel &channel, Client *client, std::string &key);
+		void handleSingleJoin(std::string &channelName, std::string &key, Client *client);
+		Channel getChannelByName(std::string &name);
+		
 		// void listen();
 		// void accept();
 		// void read();

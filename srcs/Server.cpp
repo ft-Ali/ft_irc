@@ -1,7 +1,8 @@
 #include "../inc/Server.hpp"
 
 
-/* void Server::processJoin(std::string Client, const std::string& message) {
+ void Server::processJoin(std::string name, const std::string& message) {
+   Client client(name);
     size_t spacePos = message.find(' ', 5);
     std::string channelName = message.substr(5, spacePos - 5);
     channelName.erase(channelName.find_last_not_of("\r\n") + 1);
@@ -11,8 +12,8 @@
         password = message.substr(spacePos + 1);
         password.erase(password.find_last_not_of("\r\n") + 1);
     }
-    cmdJoin(channelName, password, Client);
-} */
+    cmdJoin(channelName, password, &client);
+} 
 
 
 
@@ -255,14 +256,14 @@ void Server::handleClientMessage(int i) {
             return;
         }
     }
-    // if(message.rfind("JOIN ", 0) == 0){
-    //     std::string clientName;
-    //     std::map<int , std::string>::iterator it = _clientNicks.find(clientFd);
-    //     if(it != _clientNicks.end())
-    //         clientName = it->second;
-    //     processJoin(clientName, message);
-    //     return;
-    // }
+    if(message.rfind("JOIN ", 0) == 0){
+        std::string clientName;
+        std::map<int , std::string>::iterator it = _clientNicks.find(clientFd);
+        if(it != _clientNicks.end())
+            clientName = it->second;
+        processJoin(clientName, message);
+        return;
+    }
      if (message.rfind("PING ", 0) == 0) {
         std::string pong = "PONG " + message.substr(5) + "\n";
         send(clientFd, pong.c_str(), pong.size(), 0);
