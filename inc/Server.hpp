@@ -46,7 +46,7 @@ class Server {
 		int 		_serSocketFd;
 		static Server* instance;
 		// std::vector<Client> clients; //list Fd et IP address clients
-		std::vector<Channel> _channels;
+		std::vector<Channel*> _channels;
 		std::vector<struct pollfd> fds; //-> vector of pollfd
 		std::map<int, bool> _authenticatedClients; //-> map of client fds and authentication status
 		std::map<int, std::string> _clientNicks; //-> map of client fds and nicks
@@ -81,7 +81,7 @@ class Server {
 		bool channelExist(const std::string& name);
 		void checkRestriction(Channel &channel, Client *client, std::string &key);
 		void handleSingleJoin(std::string &channelName, std::string &key, Client *client);
-		Channel getChannelByName(std::string &name);
+		Channel *getChannelByName(std::string &name);
 		
 		// void listen();
 		// void accept();

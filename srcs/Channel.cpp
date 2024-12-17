@@ -68,7 +68,7 @@ void Channel::addMember(std::vector<Client*> &vec, Client *client){
 
 	if(it != vec.end()){
 		std::cout << "Client already set \n";
-		std::cout << client << std::endl;
+		std::cout << client->getName() << std::endl;
 	}
 	else
 		vec.push_back(client);
