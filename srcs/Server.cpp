@@ -244,7 +244,6 @@ void Server::handleClientMessage(int i) {
     }
     if (!_clientRegistered[clientFd]) {
         if (message.rfind("USER ", 0) != 0) {
-            // Si aucun USER n'est fourni, on utilise le USER du système
             const char* systemUser = getenv("USER");
             if (!systemUser) {
                 systemUser = getenv("LOGNAME");
