@@ -84,7 +84,17 @@ void Server::handleNick(int clientFd, const std::string& message) {
         return;
     }
 
-
+    // Check if the nickname is already in use
+    std::string baseNickname = newNickname;
+    int suffix = 1;
+    for (std::map<int, std::string>::iterator it = _clientNicks.begin(); it != _clientNicks.end(); ++it) {
+        if (it->second == newNickname) {
+            std::ostringstream oss;
+            oss << baseNickname << suffix;
+            newNickname = oss.str();
+            suffix++;
+        }
+    }
     std::string oldNickname = _clientNicks[clientFd];
     _clientNicks[clientFd] = newNickname;
 
@@ -301,21 +311,26 @@ void Server::handleNewConnection() {
     struct pollfd client;
     client.fd = clientFd;
     client.events = POLLIN;
+    client.revents = 0;
     fds.push_back(client);
+    _clientNicks[clientFd] = "";
+    _clientUsers[clientFd] = "";
+    _authenticatedClients[clientFd] = false;
+    _clientRegistered[clientFd] = false;
 
-    // Récupère le USER du système
+    // Get the system user name to use as a default nickname
     const char* systemUser = getenv("USER");
     if (!systemUser) {
         systemUser = getenv("LOGNAME"); // Fallback si USER n'est pas défini
     }
 
-    // Si USER n'est toujours pas trouvé, on assigne une valeur par défaut
+    // use the system USER if available, otherwise use a default nickname
     std::string nickname = systemUser ? systemUser : "anonymous_user";
 
-    // Ajoute le nickname dans _clientNicks
+    // Assign the nickname to the client
     _clientNicks[clientFd] = nickname;
 
-    // Authentifie automatiquement si un mot de passe est défini
+    // authentificate client if password is set
     if (!_password.empty()) {
         handlePass(clientFd, "PASS " + _password, fds.size() - 1);
     } 
