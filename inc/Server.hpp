@@ -44,6 +44,8 @@ class Server {
 		int 		_port; //av[1]
 		std::string _password; //av[2]
 		int 		_serSocketFd;
+        int _suffix;
+
 		static Server* instance;
 		// std::vector<Client> clients; //list Fd et IP address clients
 		std::vector<Channel*> _channels;
@@ -55,7 +57,7 @@ class Server {
 		// std::vector<Channel *> _channels; //-> vector of channels
 		
 	public:
-		Server(int port, std::string password) : _port(port), _password(password), _serSocketFd(-1), fds(0) {
+		Server(int port, std::string password) : _port(port), _password(password), _serSocketFd(-1), _suffix(0), fds(0) {
 			if(instance != NULL) {
 				throw(std::runtime_error("error: Server instance already exists"));
 			}

@@ -86,14 +86,14 @@ void Server::handleNick(int clientFd, const std::string& message) {
 
     // Check if the nickname is already in use
     std::string baseNickname = newNickname;
-    int suffix = 1;
+    _suffix = 0;
     for (std::map<int, std::string>::iterator it = _clientNicks.begin(); it != _clientNicks.end(); ++it) {
-        if (it->second == newNickname) {
+        if (it->second == newNickname && _suffix > 0) {
             std::ostringstream oss;
-            oss << baseNickname << suffix;
+            oss << baseNickname <<"("<< _suffix << ")";
             newNickname = oss.str();
-            suffix++;
         }
+        _suffix++;
     }
     std::string oldNickname = _clientNicks[clientFd];
     _clientNicks[clientFd] = newNickname;
@@ -157,7 +157,7 @@ void Server::closeServer() {
 
 bool Server::authenticateClient(int clientFd, const std::string& message, size_t i) {
 	if (message == _password) {
-		std::cout << "Client FD " << clientFd << " authenticated" << std::endl;
+		// std::cout << "Client FD " << clientFd << " authenticated" << std::endl;
 		_authenticatedClients[clientFd] = true;
 		std::string response = "Welcome to the server!\n";
 		send(clientFd, response.c_str(), response.size(), 0);
@@ -237,8 +237,8 @@ void Server::handleClientMessage(int i) {
                 _clientUsers[clientFd] = username;
 
                 // Send NICK and USER commands automatically
-                handleNick(clientFd, "NICK " + nickname + "\r\n");
-                handleUser(clientFd);
+                // handleNick(clientFd, "NICK " + nickname + "\r\n");
+                // handleUser(clientFd);
             }
         } else {
             std::string response = "Please provide a password using PASS <password>\n";
@@ -276,11 +276,11 @@ void Server::handleClientMessage(int i) {
      if (message.rfind("PING ", 0) == 0) {
         std::string pong = "PONG " + message.substr(5) + "\n";
         send(clientFd, pong.c_str(), pong.size(), 0);
-        std::cout << "PONG sent to client FD " << clientFd << std::endl;
+        // std::cout << "PONG sent to client FD " << clientFd << std::endl;
         return;
     }
       if (message.rfind("MODE ", 0) == 0) {
-        std::cout << "Client " << clientFd << " sent MODE, ignoring for now." << std::endl;
+        // std::cout << "Client " << clientFd << " sent MODE, ignoring for now." << std::endl;
         return;
     }
     if (message.rfind("QUIT", 0) == 0) {
