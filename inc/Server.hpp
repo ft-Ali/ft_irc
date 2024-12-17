@@ -6,7 +6,7 @@
 /*   By: alsiavos <alsiavos@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/09 11:14:11 by alsiavos          #+#    #+#             */
-/*   Updated: 2024/12/16 17:01:08 by alsiavos         ###   ########.fr       */
+/*   Updated: 2024/12/17 16:13:36 by alsiavos         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,7 +55,7 @@ class Server {
 		// std::vector<Channel *> _channels; //-> vector of channels
 		
 	public:
-		Server(int port, std::string password) : _port(port), _password(password), _serSocketFd(-1) {
+		Server(int port, std::string password) : _port(port), _password(password), _serSocketFd(-1), fds(0) {
 			if(instance != NULL) {
 				throw(std::runtime_error("error: Server instance already exists"));
 			}

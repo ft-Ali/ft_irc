@@ -12,8 +12,9 @@
 - [x] Tester avec irssi.
 - [ ] Vérifier la gestion des erreurs et ajouter des messages d’erreur clairs.
 
-
+-[] gerer plusieurs noms si meme nom je rajoute 1
 - Server doit envoyer nom du channel + client + check si mdp.
 - cmdJoin recupere (nameChannel, &mdp, client);
+- [] gerer tout les fds present dans un channel si un fds (clients envoie un msg) tout le monde le recoit.
 
 *************************************************************************************************************************************************
