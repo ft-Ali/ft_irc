@@ -48,15 +48,15 @@ void Server::handleSingleJoin(std::string &channelName, std::string &key, Client
 
 	if(!channelExist(channelName)){
 		Channel *channel;
-	std::cout << "Channel " << channelName << " created and join.\n";
+		std::cout << "Channel '" << channelName << "' created and joined.\n";
 		if(key.empty())
 			channel = new Channel(client, channelName);
 		else
 			channel = new Channel(client, channelName, key);
 		_channels.push_back(*channel);
-		std::cout << "Channel " << channelName << " created and joined.\n";
 	}
 	else{
+		std::cout << "Channel " << channelName << " join.\n";
 		Channel channel = getChannelByName(channelName);
 		checkRestriction(channel, client, key);
 	}
@@ -79,10 +79,10 @@ void	Server::checkRestriction(Channel &channel, Client *client, std::string &key
             return;
         }
     }
-    if (_channels.size() >= channel.getmaxMembers()) {
-        std::cout << "Cannot join " << channel.getName() << ", channel is full.\n";
-        return;
-    }
+    // if (_channels.size() >= channel.getmaxMembers()) {
+    //     std::cout << "Cannot join " << channel.getName() << ", channel is full.\n";
+    //     return;
+    // }
 	channel.addListMember(client);
 	std::cout << "Joined " << channel.getName() << " successfully.\n";
 }

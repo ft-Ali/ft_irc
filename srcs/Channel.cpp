@@ -66,8 +66,10 @@ void Channel::addMember(std::vector<Client*> &vec, Client *client){
 
 	std::vector<Client *>::const_iterator it = std::find(vec.begin(), vec.end(),client);
 
-	if(it != vec.end())
+	if(it != vec.end()){
 		std::cout << "Client already set \n";
+		std::cout << client << std::endl;
+	}
 	else
 		vec.push_back(client);
 }
@@ -167,16 +169,15 @@ bool Channel::checkListMembers( Client *client){
 /****************************************************************/
 void Channel::parseChannelName(){
 
-	std::cout << _name[0] << std::endl;
 	if(_name.size() > 50)
 		throw(std::invalid_argument("Inavlid size name"));
 	if(_name[0] != '#')	
 		throw(std::invalid_argument("Inavlid channel prefix"));
-	if(_name.find(' ') == std::string::npos)
+	if(_name.find(' ') != std::string::npos)
 		throw(std::invalid_argument("Inavlid channel name"));
-	if(_name.find("^G") == std::string::npos)
+	if(_name.find("^G") != std::string::npos)
 		throw(std::invalid_argument("Inavlid channel name"));
-	if(_name.find(',') == std::string::npos)
+	if(_name.find(',') != std::string::npos)
 		throw(std::invalid_argument("Inavlid channel name"));
 
 }
