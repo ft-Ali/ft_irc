@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: alsiavos <alsiavos@student.42.fr>          +#+  +:+       +#+        */
+/*   By: louismdv <louismdv@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/09 11:14:11 by alsiavos          #+#    #+#             */
-/*   Updated: 2024/12/16 17:01:08 by alsiavos         ###   ########.fr       */
+/*   Updated: 2024/12/18 10:14:33 by louismdv         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,11 +41,11 @@
 
 class Server {
 	private:
-		int 		_port; //av[1]
-		std::string _password; //av[2]
+		int 		_port;      //av[1]
+		std::string _password;  //av[2]
 		int 		_serSocketFd;
 		static Server* instance;
-		// std::vector<Client> clients; //list Fd et IP address clients
+		std::vector<Client> _clients; //list Fd et IP address clients
 		std::vector<Channel> _channels;
 		std::vector<struct pollfd> fds; //-> vector of pollfd
 		std::map<int, bool> _authenticatedClients; //-> map of client fds and authentication status
