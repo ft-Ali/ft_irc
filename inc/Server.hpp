@@ -1,3 +1,17 @@
+<<<<<<< HEAD
+=======
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   Server.hpp                                         :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: alsiavos <alsiavos@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/12/09 11:14:11 by alsiavos          #+#    #+#             */
+/*   Updated: 2024/12/17 16:13:36 by alsiavos         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+>>>>>>> origin/meshmesh
 
 #ifndef SERVER_HPP
 # define SERVER_HPP
@@ -33,9 +47,16 @@ class Server {
 		int 		_port;      //av[1]
 		std::string _password;  //av[2]
 		int 		_serSocketFd;
+        int _suffix;
+
 		static Server* instance;
+<<<<<<< HEAD
 		std::vector<Client> _clients; //list Fd et IP address clients
 		std::vector<Channel> _channels;
+=======
+		// std::vector<Client> clients; //list Fd et IP address clients
+		std::vector<Channel*> _channels;
+>>>>>>> origin/meshmesh
 		std::vector<struct pollfd> fds; //-> vector of pollfd
 		std::map<int, bool> _authenticatedClients; //-> map of client fds and authentication status
 		std::map<int, std::string> _clientNicks; //-> map of client fds and nicks
@@ -44,7 +65,7 @@ class Server {
 		// std::vector<Channel *> _channels; //-> vector of channels
 		
 	public:
-		Server(int port, std::string password) : _port(port), _password(password), _serSocketFd(-1) {
+		Server(int port, std::string password) : _port(port), _password(password), _serSocketFd(-1), _suffix(0), fds(0) {
 			if(instance != NULL) {
 				throw(std::runtime_error("error: Server instance already exists"));
 			}
@@ -70,7 +91,7 @@ class Server {
 		bool channelExist(const std::string& name);
 		void checkRestriction(Channel &channel, Client *client, std::string &key);
 		void handleSingleJoin(std::string &channelName, std::string &key, Client *client);
-		Channel getChannelByName(std::string &name);
+		Channel *getChannelByName(std::string &name);
 		
 		// void listen();
 		// void accept();

@@ -53,12 +53,16 @@ void Server::handleSingleJoin(std::string &channelName, std::string &key, Client
 			channel = new Channel(client, channelName);
 		else
 			channel = new Channel(client, channelName, key);
-		_channels.push_back(*channel);
+		std::cout << &channel << std::endl;
+		_channels.push_back(channel);
+		channel->addListMember(client);
+
 	}
 	else{
 		std::cout << "Channel " << channelName << " join.\n";
-		Channel channel = getChannelByName(channelName);
-		checkRestriction(channel, client, key);
+		Channel *channel = getChannelByName(channelName);
+		// std::cout << "copy " << &channel << std::endl;
+		checkRestriction(*channel, client, key);
 	}
 }
 
@@ -84,20 +88,23 @@ void	Server::checkRestriction(Channel &channel, Client *client, std::string &key
     //     return;
     // }
 	channel.addListMember(client);
-	std::cout << "Joined " << channel.getName() << " successfully.\n";
+	for(size_t i = 0; i < 1; ++i){
+	std::cout <<client->getName() << " Joined " << channel.getName() << " successfully.\n";
+	}
 }
 
-Channel Server::getChannelByName(std::string &name){
-	 for (size_t i = 0; i < _channels.size(); ++i) {
-        if (_channels[i].getName() == name)
+Channel *Server::getChannelByName(std::string &name){
+	
+	for (size_t i = 0; i < _channels.size(); ++i) {
+        if (_channels[i]->getName() == name)
             return _channels[i];
     }
-	return Channel(NULL, "");
+	return NULL;
 }
 
 bool Server::channelExist(const std::string& name) {
     for (size_t i = 0; i < _channels.size(); ++i) {
-        if (_channels[i].getName() == name)
+        if (_channels[i]->getName() == name)
             return true;
     }
     return false;

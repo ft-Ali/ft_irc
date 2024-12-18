@@ -65,12 +65,17 @@ std::string Channel::getName(){return this->_name;}
 void Channel::addMember(std::vector<Client*> &vec, Client *client){
 
 	std::vector<Client *>::const_iterator it = std::find(vec.begin(), vec.end(),client);
+	(void)it;
+	// if(it != vec.end()){
+	// 	std::cout << "Client already set \n";
+	// 	std::cout << client->getName() << std::endl;
+	// }
+	// else
+	for(std::vector<Client*>::iterator it = _members.begin(); it != _members.end(); ++it){
+		
+		std::cout <<"client :" << client->getName() << std::endl;
 
-	if(it != vec.end()){
-		std::cout << "Client already set \n";
-		std::cout << client << std::endl;
 	}
-	else
 		vec.push_back(client);
 }
 

@@ -85,7 +85,17 @@ void Server::handleNick(int clientFd, const std::string& message) {
         return;
     }
 
-
+    // Check if the nickname is already in use
+    std::string baseNickname = newNickname;
+    _suffix = 0;
+    for (std::map<int, std::string>::iterator it = _clientNicks.begin(); it != _clientNicks.end(); ++it) {
+        if (it->second == newNickname && _suffix > 0) {
+            std::ostringstream oss;
+            oss << baseNickname <<"("<< _suffix << ")";
+            newNickname = oss.str();
+        }
+        _suffix++;
+    }
     std::string oldNickname = _clientNicks[clientFd];
     _clientNicks[clientFd] = newNickname;
 
@@ -148,7 +158,7 @@ void Server::closeServer() {
 
 bool Server::authenticateClient(int clientFd, const std::string& message, size_t i) {
 	if (message == _password) {
-		std::cout << "Client FD " << clientFd << " authenticated" << std::endl;
+		// std::cout << "Client FD " << clientFd << " authenticated" << std::endl;
 		_authenticatedClients[clientFd] = true;
 		std::string response = "Welcome to the server!\n";
 		send(clientFd, response.c_str(), response.size(), 0);
@@ -231,8 +241,8 @@ void Server::handleClientMessage(int i) {
                 _clients[clientFd].setUsername(username);
 
                 // Send NICK and USER commands automatically
-                handleNick(clientFd, "NICK " + nickname + "\r\n");
-                handleUser(clientFd);
+                // handleNick(clientFd, "NICK " + nickname + "\r\n");
+                // handleUser(clientFd);
             }
         } else {
             std::string response = "Please provide a password using PASS <password>\n";
@@ -248,7 +258,6 @@ void Server::handleClientMessage(int i) {
     }
     if (!_clientRegistered[clientFd]) {
         if (message.rfind("USER ", 0) != 0) {
-            // Si aucun USER n'est fourni, on utilise le USER du système
             const char* systemUser = getenv("USER");
             if (!systemUser) {
                 systemUser = getenv("LOGNAME");
@@ -271,11 +280,11 @@ void Server::handleClientMessage(int i) {
      if (message.rfind("PING ", 0) == 0) {
         std::string pong = "PONG " + message.substr(5) + "\n";
         send(clientFd, pong.c_str(), pong.size(), 0);
-        std::cout << "PONG sent to client FD " << clientFd << std::endl;
+        // std::cout << "PONG sent to client FD " << clientFd << std::endl;
         return;
     }
       if (message.rfind("MODE ", 0) == 0) {
-        std::cout << "Client " << clientFd << " sent MODE, ignoring for now." << std::endl;
+        // std::cout << "Client " << clientFd << " sent MODE, ignoring for now." << std::endl;
         return;
     }
     if (message.rfind("QUIT", 0) == 0) {
@@ -322,21 +331,26 @@ void Server::handleNewConnection() {
     struct pollfd client;
     client.fd = clientFd;
     client.events = POLLIN;
+    client.revents = 0;
     fds.push_back(client);
+    _clientNicks[clientFd] = "";
+    _clientUsers[clientFd] = "";
+    _authenticatedClients[clientFd] = false;
+    _clientRegistered[clientFd] = false;
 
-    // Récupère le USER du système
+    // Get the system user name to use as a default nickname
     const char* systemUser = getenv("USER");
     if (!systemUser) {
         systemUser = getenv("LOGNAME"); // Fallback si USER n'est pas défini
     }
 
-    // Si USER n'est toujours pas trouvé, on assigne une valeur par défaut
+    // use the system USER if available, otherwise use a default nickname
     std::string nickname = systemUser ? systemUser : "anonymous_user";
 
-    // Ajoute le nickname dans _clientNicks
+    // Assign the nickname to the client
     _clientNicks[clientFd] = nickname;
 
-    // Authentifie automatiquement si un mot de passe est défini
+    // authentificate client if password is set
     if (!_password.empty()) {
         handlePass(clientFd, "PASS " + _password, fds.size() - 1);
     } 
