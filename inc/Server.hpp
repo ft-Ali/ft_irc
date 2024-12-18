@@ -65,6 +65,7 @@ class Server {
 		void checkRestriction(Channel &channel, Client *client, std::string &key);
 		void handleSingleJoin(std::string &channelName, std::string &key, Client *client);
 		Channel *getChannelByName(std::string &name);
+		void	removeClient(Client *client, Channel *channel);
 		
 		// void listen();
 		// void accept();

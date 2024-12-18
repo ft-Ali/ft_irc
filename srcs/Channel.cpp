@@ -116,7 +116,9 @@ void Channel::removeMember( Client *client){
 	removeClientList(_whiteList, client);
 
 }
-
+void Channel::leaveChannel(Client *client){
+	removeClientList(_members, client);
+}
 void Channel::removeOperator(Client* client){
 	removeClientList(_operatorList, client);
 }
