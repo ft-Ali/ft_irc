@@ -12,3 +12,4 @@
 | **8. Finalisation et rendu** | - Nettoyage du code.<br>- Préparation du dépôt Git.<br>- Répétition pour la soutenance.                                  | Ensemble         | 9 heures (1 jour)       | Vérifiez que tout est conforme à la norme C++98 et prêt pour l’évaluation.                    |
 
 
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
