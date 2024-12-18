@@ -30,7 +30,7 @@ class Client {
         bool _isRegistered;
         bool _isOperator;
         bool _isConnected;                            // Client connection status
-
+        std::vector<Channel*> _joinedChannels;
 	public:
         Client();
 		// Client(int fd, std::string &nick, std::string &name):  _fd(fd), _nickname(nick), _username(name) {};
