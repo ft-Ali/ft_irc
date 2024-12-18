@@ -2,7 +2,7 @@
 
 
  void Server::processJoin(std::string name, const std::string& message) {
-   Client client(name);
+   Client client(name, "",);
     size_t spacePos = message.find(' ', 5);
     std::string channelName = message.substr(5, spacePos - 5);
     channelName.erase(channelName.find_last_not_of("\r\n") + 1);
@@ -304,6 +304,22 @@ void Server::handleClientMessage(int i) {
 
 
 void Server::handleNewConnection() {
+
+    struct sockaddr_in clientAddr;
+    socklen_t clientAddrLen = sizeof(clientAddr);
+    
+    int clientFd = accept(_serSocketFd, (struct sockaddr*)&clientAddr, &clientAddrLen);
+    if (clientFd < 0) {
+        perror("Accept failed");
+    } else {
+        char clientIp[INET_ADDRSTRLEN];
+        inet_ntop(AF_INET, &clientAddr.sin_addr, clientIp, INET_ADDRSTRLEN);
+        int clientPort = ntohs(clientAddr.sin_port);
+    }
+    std::cout << "New connection from " << clientIp << ":" << clientPort << std::endl;
+
+    // Store the client information in your Client class
+    Client newClient(clientFd, clientIp, clientPort);
     int clientFd = accept(_serSocketFd, NULL, NULL); // Accept new connection
     if (clientFd == -1) 
         throw(std::runtime_error("error: accept() failed"));

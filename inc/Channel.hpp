@@ -20,7 +20,6 @@ class Channel{
 		size_t _maxMembers;
 		bool _editTopic;
 		bool _invitOnly;
-		bool _isOperator;
 		std::vector<Client*> _members;
     	std::vector<Client*> _whiteList;
     	std::vector<Client*> _banList;
@@ -59,7 +58,7 @@ class Channel{
 		void removeClientList(std::vector<Client*>& vec, Client *client);
 		size_t getmaxMembers();
 		void setmaxMembers(size_t size);
-		
+		void leaveChannel(Client *client);
 		bool checkWhiteList(Client *client);
 		void addToWhiteList(Client *client);
 		void removeToWhiteList(Client *client);

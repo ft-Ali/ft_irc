@@ -1,15 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Server.hpp                                         :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: alsiavos <alsiavos@student.42.fr>          +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/12/09 11:14:11 by alsiavos          #+#    #+#             */
-/*   Updated: 2024/12/17 16:13:36 by alsiavos         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #ifndef SERVER_HPP
 # define SERVER_HPP
 
@@ -41,8 +29,8 @@
 
 class Server {
 	private:
-		int 		_port; //av[1]
-		std::string _password; //av[2]
+		int 		_port;      //av[1]
+		std::string _password;  //av[2]
 		int 		_serSocketFd;
         int _suffix;
 
@@ -84,6 +72,7 @@ class Server {
 		void checkRestriction(Channel &channel, Client *client, std::string &key);
 		void handleSingleJoin(std::string &channelName, std::string &key, Client *client);
 		Channel *getChannelByName(std::string &name);
+		void	removeClient(Client *client, Channel *channel);
 		
 		// void listen();
 		// void accept();
