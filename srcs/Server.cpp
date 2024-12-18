@@ -1,19 +1,19 @@
 #include "../inc/Server.hpp"
 
 
- void Server::processJoin(std::string name, const std::string& message) {
-   Client client(name);
-    size_t spacePos = message.find(' ', 5);
-    std::string channelName = message.substr(5, spacePos - 5);
-    channelName.erase(channelName.find_last_not_of("\r\n") + 1);
+//  void Server::processJoin(std::string name, const std::string& message) {
+// //    Client client(name);
+//     size_t spacePos = message.find(' ', 5);
+//     std::string channelName = message.substr(5, spacePos - 5);
+//     channelName.erase(channelName.find_last_not_of("\r\n") + 1);
 
-    std::string password;
-    if (spacePos != std::string::npos) {
-        password = message.substr(spacePos + 1);
-        password.erase(password.find_last_not_of("\r\n") + 1);
-    }
-    cmdJoin(channelName, password, &client);
-} 
+//     std::string password;
+//     if (spacePos != std::string::npos) {
+//         password = message.substr(spacePos + 1);
+//         password.erase(password.find_last_not_of("\r\n") + 1);
+//     }
+//     cmdJoin(channelName, password, &client);
+// } 
 
 
 
@@ -36,7 +36,8 @@ void Server::handlePass(int clientFd, const std::string& message, size_t i) {
     if (password == _password) {
         _authenticatedClients[clientFd] = true;
         _clientRegistered[clientFd] = false;  // Client is not fully registered yet
-        _clients[clientFd]._isRegistered(false);
+        _clients[clientFd - 4].setAuthentificated(true);
+        _clients[clientFd - 4].setRegistered(false);
 
         std::cout << "Client FD " << clientFd << " authenticated" << std::endl;
 
@@ -51,6 +52,7 @@ void Server::handlePass(int clientFd, const std::string& message, size_t i) {
         handleUser(clientFd);
     } else {
         _authenticatedClients[clientFd] = false;
+        _clients[clientFd].setAuthentificated(false);
         // Failed authentication: Close the connection
         std::string response = "Authentication failed. Disconnecting.\n";
         send(clientFd, response.c_str(), response.size(), 0);
@@ -128,7 +130,9 @@ void Server::handleUser(int clientFd) {
     const char* systemUser = getenv("USER");
     std::string username = systemUser ? systemUser : _clientNicks[clientFd];
     _clientUsers[clientFd] = username;
+    _clients[clientFd].setUsername(username);
     _clientRegistered[clientFd] = true;
+    _clients[clientFd].setRegistered(true);
 
     std::string welcome = ":localhost 001 " + _clientNicks[clientFd] + 
                           " :Welcome to the IRC Network, username: " + username + "\n";
@@ -160,6 +164,7 @@ bool Server::authenticateClient(int clientFd, const std::string& message, size_t
 	if (message == _password) {
 		// std::cout << "Client FD " << clientFd << " authenticated" << std::endl;
 		_authenticatedClients[clientFd] = true;
+        _clients[clientFd].setAuthentificated(true);
 		std::string response = "Welcome to the server!\n";
 		send(clientFd, response.c_str(), response.size(), 0);
 		return true; // client authenticated
@@ -264,6 +269,8 @@ void Server::handleClientMessage(int i) {
             }
             std::string username = systemUser ? systemUser : "default_user";
             _clientUsers[clientFd] = username;
+            _clients[clientFd].setUsername(username);
+
 
             handleUser(clientFd);
             return;
@@ -274,7 +281,7 @@ void Server::handleClientMessage(int i) {
         std::map<int , std::string>::iterator it = _clientNicks.find(clientFd);
         if(it != _clientNicks.end())
             clientName = it->second;
-        processJoin(clientName, message);
+        // processJoin(clientName, message);
         return;
     }
      if (message.rfind("PING ", 0) == 0) {
@@ -306,37 +313,34 @@ void Server::handleClientMessage(int i) {
 }
 
 
-
 void Server::handleNewConnection() {
 
     struct sockaddr_in clientAddr;
     socklen_t clientAddrLen = sizeof(clientAddr);
-    
-    int clientFd = accept(_serSocketFd, (struct sockaddr*)&clientAddr, &clientAddrLen);
-    if (clientFd < 0) {
-        perror("Accept failed");
-    } else {
-        char clientIp[INET_ADDRSTRLEN];
-        inet_ntop(AF_INET, &clientAddr.sin_addr, clientIp, INET_ADDRSTRLEN);
-        int clientPort = ntohs(clientAddr.sin_port);
-    }
-    std::cout << "New connection from " << clientIp << ":" << clientPort << std::endl;
 
-    // Store the client information in your Client class
-    Client newClient(clientFd, clientIp, clientPort);
-    int clientFd = accept(_serSocketFd, NULL, NULL); // Accept new connection
+    int clientFd = accept(_serSocketFd, (struct sockaddr*)&clientAddr,  &clientAddrLen); // Accept new connection
     if (clientFd == -1) 
         throw(std::runtime_error("error: accept() failed"));
+
+    char clientIp[INET_ADDRSTRLEN]; // Creates a char array to store the client’s IP address in human-readable form.
+    inet_ntop(AF_INET, &clientAddr.sin_addr, clientIp, INET_ADDRSTRLEN); // Converts the binary representation of the client’s IP address into a human-readable string 
+    int clientPort = ntohs(clientAddr.sin_port); // Converts the client’s port number from network byte order to host byte order and stores it in clientPort.
 
     struct pollfd client;
     client.fd = clientFd;
     client.events = POLLIN;
     client.revents = 0;
     fds.push_back(client);
+
     _clientNicks[clientFd] = "";
     _clientUsers[clientFd] = "";
     _authenticatedClients[clientFd] = false;
     _clientRegistered[clientFd] = false;
+    // _clients[clientFd - 4].setNickname("");
+    // _clients[clientFd - 4].setUsername("");
+    // _clients[clientFd - 4].setAuthentificated(false);
+    // _clients[clientFd - 4].setRegistered(false);
+
 
     // Get the system user name to use as a default nickname
     const char* systemUser = getenv("USER");
@@ -349,6 +353,10 @@ void Server::handleNewConnection() {
 
     // Assign the nickname to the client
     _clientNicks[clientFd] = nickname;
+    // _clients[clientFd - 4].setNickname(nickname);
+
+    // Adding all client infos to _client vector in Server
+    _clients.emplace_back(clientFd, clientPort, clientIp, "", nickname);
 
     // authentificate client if password is set
     if (!_password.empty()) {

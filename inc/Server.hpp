@@ -1,18 +1,3 @@
-<<<<<<< HEAD
-=======
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Server.hpp                                         :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: alsiavos <alsiavos@student.42.fr>          +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/12/09 11:14:11 by alsiavos          #+#    #+#             */
-/*   Updated: 2024/12/17 16:13:36 by alsiavos         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
->>>>>>> origin/meshmesh
-
 #ifndef SERVER_HPP
 # define SERVER_HPP
 
@@ -36,33 +21,21 @@
 #include "Channel.hpp"
 
 
-// struct pollfd {
-// 	int     fd; //-> file descriptor
-// 	short   events;//-> requested events
-// 	short   revents;//-> returned events
-// };
-
 class Server {
 	private:
-		int 		_port;      //av[1]
+		int _port; //av[1]
 		std::string _password;  //av[2]
-		int 		_serSocketFd;
+		int _serSocketFd;
         int _suffix;
 
 		static Server* instance;
-<<<<<<< HEAD
 		std::vector<Client> _clients; //list Fd et IP address clients
-		std::vector<Channel> _channels;
-=======
-		// std::vector<Client> clients; //list Fd et IP address clients
-		std::vector<Channel*> _channels;
->>>>>>> origin/meshmesh
+		std::vector<Channel*> _channels; //-> vector of channels
 		std::vector<struct pollfd> fds; //-> vector of pollfd
 		std::map<int, bool> _authenticatedClients; //-> map of client fds and authentication status
-		std::map<int, std::string> _clientNicks; //-> map of client fds and nicks
 		std::map<int, bool> _clientRegistered; //-> map of client fds and registration status
 		std::map<int, std::string> _clientUsers; //-> map of client fds and users
-		// std::vector<Channel *> _channels; //-> vector of channels
+		std::map<int, std::string> _clientNicks; //-> map of client fds and nicks
 		
 	public:
 		Server(int port, std::string password) : _port(port), _password(password), _serSocketFd(-1), _suffix(0), fds(0) {

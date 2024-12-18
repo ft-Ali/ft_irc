@@ -15,7 +15,7 @@ all: $(NAME)
 -include $(DEPS)
 
 .cpp.o:
-	@printf "\r\033[K[IRC] \033[0;32mBuilding : $<\033[0m"
+	@printf "\r\033[K[IRC] \033[0;32mBuilding : $<\033[0m\n"
 	@$(CC) $(FLAG) -c $< -o $@ -MMD -MP
 
 
