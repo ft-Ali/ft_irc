@@ -1,4 +1,5 @@
 #include "inc/Server.hpp"
+#include "inc/Channel.hpp"
 
 int main (int c, char **v)
 {
@@ -7,10 +8,19 @@ int main (int c, char **v)
 		return 1;
 	}
 	else {
+        try{
 		Server server(atoi(v[1]), v[2]);
-		server.init();
-	}
+        signal(SIGINT, server.signalHandler);
+        signal(SIGQUIT, server.signalHandler);
+        // std::cout << "Server started mdp " << v[2] << std::endl;
+        server.serverInit();
+        server.serverLoop();}
+        catch(const std::exception &e){
+            std::cerr << e.what() << std::endl;
+        }
 
+        
+	}
 
 	return 0;
 }
@@ -52,3 +62,38 @@ Mettre la socket en mode écoute.
 
 
 */
+
+// void Server::handleNewConnection() {
+//     int clientFd = accept(_serSocketFd, NULL, NULL); // accept new connection
+//     if (clientFd == -1) 
+//         throw(std::runtime_error("error: accept() failed"));
+    
+//     struct pollfd client;
+//     client.fd = clientFd;
+//     client.events = POLLIN;
+//     fds.push_back(client);
+//     std::string name;
+
+//     if (_clientNicks.find(clientFd) == _clientNicks.end()) {
+//         std::ostringstream oss;
+//         int::iterator it = std::find(_clientNicks.begin(), _clientNicks.end(), clientFd);
+//         if(it != _clientNicks.end()){
+//             name = it->second;
+//         }
+//         oss << _clientNicks[clientFd] << clientFd;
+//         _clientNicks[clientFd] = oss.str();
+//     }
+//     std::cout << "New client connected: FD " << clientFd << ", default nickname: " 
+//               << _clientNicks[clientFd] << std::endl;
+//     // Automatically send PASS command with the provided password
+//     if(_password.empty()) {
+//         std::string response = "Please provide a password using PASS <password>\n";
+//         send(clientFd, response.c_str(), response.size(), 0);
+//         return;
+//     }
+//     else {
+//         handlePass(clientFd, "PASS " + _password, fds.size() - 1);
+//     }
+
+    
+// }

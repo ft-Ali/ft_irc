@@ -5,7 +5,7 @@ CC          =   c++
 FLAG        =   -Wall -Wextra -Werror -std=c++98 -g3
 
 
-C_FILE		 =	main.cpp srcs/Server.cpp srcs/Client.cpp srcs/Channel.cpp
+C_FILE		 =	main.cpp srcs/Server.cpp srcs/Client.cpp srcs/Channel.cpp srcs/Command/Command.cpp
 
 OBJS        =   $(C_FILE:.cpp=.o)
 DEPS		=	$(OBJS:.o=.d)
