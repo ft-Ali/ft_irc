@@ -9,6 +9,8 @@ class Client{
         std::string _hostname;                        // Hostname of the client
         std::string _nickname;                        // Nickname chosen by the client
         std::string _username;                        // Username provided in the USER command
+        bool _isAuthentificated;
+        bool _isRegistered;
         bool _isConnected;                            // Client connection status
         bool _isOperator;
 
@@ -33,9 +35,12 @@ class Client{
 	    //---------------//Setters
 	    void setFd(int fd) { _fd = fd; }
 	    void setNickname(std::string& nickname){ _nickname = nickname; }
-	    void isConnected(bool value) { _isConnected = value; }
 	    void setUsername(std::string& username) { _username = username; }
 	    void setIpAddr(std::string ipaddr) {_ip = ipaddr; }
+        void setRegistered(bool value) { _isRegistered = value; }
+	    void setConnected(bool value) { _isConnected = value; }
+        void setOperator(bool value) { _isOperator = value; }
+        void setAuthenificated(bool value) { _isAuthentificated = value; }
 	    //---------------//Methods
 	    // void _channelsInvite(std::string &chname);
 	    // void RmChannelsInvite(std::string &chname);

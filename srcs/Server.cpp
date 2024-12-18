@@ -36,6 +36,7 @@ void Server::handlePass(int clientFd, const std::string& message, size_t i) {
     if (password == _password) {
         _authenticatedClients[clientFd] = true;
         _clientRegistered[clientFd] = false;  // Client is not fully registered yet
+        _clients[clientFd]._isRegistered(false);
 
         std::cout << "Client FD " << clientFd << " authenticated" << std::endl;
 
@@ -223,8 +224,11 @@ void Server::handleClientMessage(int i) {
 
                 const char* systemUser = getenv("USER");
                 std::string username = systemUser ? systemUser : "default_user"; // Default USER
-                _clientNicks[clientFd] = nickname;
+                _clientNicks[clientFd] = nickname;                
+                _clients[clientFd].setNickname(nickname);
+
                 _clientUsers[clientFd] = username;
+                _clients[clientFd].setUsername(username);
 
                 // Send NICK and USER commands automatically
                 handleNick(clientFd, "NICK " + nickname + "\r\n");
