@@ -9,9 +9,9 @@ SO_REUSEADDR - Socket Reusable Address: allows a socket to bind to an address th
 
 Setting up the server:
     Server initiation: 
-       1. set socket (AF_NET, SOCK_STREAM)
+        1. set socket (AF_NET, SOCK_STREAM)
         2. set_opt
-        3. bind to fixed IP_addr
+        3. bind to fixed socket to port
         4. make it a listening Socket
         5. add socket to server class fds
     Loop poll:
