@@ -71,11 +71,11 @@ void Channel::addMember(std::vector<Client*> &vec, Client *client){
 	// 	std::cout << client->getName() << std::endl;
 	// }
 	// else
-	for(std::vector<Client*>::iterator it = _members.begin(); it != _members.end(); ++it){
+	// for(std::vector<Client*>::iterator it = _members.begin(); it != _members.end(); ++it){
 		
-		std::cout <<"client :" << client->getName() << std::endl;
+	// 	std::cout <<"client :" << client->getName() << std::endl;
 
-	}
+	// }
 		vec.push_back(client);
 }
 
