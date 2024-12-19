@@ -48,7 +48,7 @@ void Server::handlePass(int clientFd, const std::string& message, size_t i) {
         handleUser(clientFd);
     } else {
         _authenticatedClients[clientFd] = false;
-        _clients[clientFd]->setAuthentificated(false);
+        _clients[clientFd - 4]->setAuthentificated(false);
         // Failed authentication: Close the connection
         std::string response = "Authentication failed. Disconnecting.\n";
         send(clientFd, response.c_str(), response.size(), 0);
@@ -125,8 +125,8 @@ void Server::handleUser(int clientFd) {
     std::string username = systemUser ? systemUser : _clientNicks[clientFd];
     _clientUsers[clientFd] = username;
     _clientRegistered[clientFd] = true;
-    _clients[clientFd]->setUsername(username);
-    _clients[clientFd]->setRegistered(true);
+    _clients[clientFd - 4]->setUsername(username);
+    _clients[clientFd - 4]->setRegistered(true);
 
     std::string welcome = ":localhost 001 " + _clientNicks[clientFd] + 
                           " :Welcome to the IRC Network, username: " + username + "\n";
@@ -158,7 +158,7 @@ bool Server::authenticateClient(int clientFd, const std::string& message, size_t
 	if (message == _password) {
 		// std::cout << "Client FD " << clientFd << " authenticated" << std::endl;
 		_authenticatedClients[clientFd] = true;
-        _clients[clientFd]->setAuthentificated(true);
+        _clients[clientFd - 4]->setAuthentificated(true);
 		std::string response = "Welcome to the server!\n";
 		send(clientFd, response.c_str(), response.size(), 0);
 		return true; // client authenticated
@@ -235,8 +235,8 @@ void Server::handleClientMessage(int i) {
                 std::string username = systemUser ? systemUser : "default_user"; // Default USER
                 _clientNicks[clientFd] = nickname;                
                 _clientUsers[clientFd] = username;
-                _clients[clientFd]->setNickname(nickname);
-                _clients[clientFd]->setUsername(username);
+                _clients[clientFd - 4]->setNickname(nickname);
+                _clients[clientFd - 4]->setUsername(username); 
 
                 // Send NICK and USER commands automatically
                 // handleNick(clientFd, "NICK " + nickname + "\r\n");
@@ -262,7 +262,7 @@ void Server::handleClientMessage(int i) {
             }
             std::string username = systemUser ? systemUser : "default_user";
             _clientUsers[clientFd] = username;
-            _clients[clientFd]->setUsername(username);
+            _clients[clientFd - 4]->setUsername(username);
 
 
             handleUser(clientFd);
@@ -316,7 +316,7 @@ std::string Server::getClientByFd(const int &clientFd){
     return clientName;
 }
 
-void Server::handleNewConnection() {/home/louismdv/.ssh/id_rsa
+void Server::handleNewConnection() {
 
     struct sockaddr_in clientAddr;
     socklen_t clientAddrLen = sizeof(clientAddr);

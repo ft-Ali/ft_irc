@@ -59,7 +59,7 @@ std::string Channel::getCreationTime() const{
 
 std::string Channel::getKey(){return this->_key;}
 
-std::string Channel::getName(){return this->_name;}
+std::string Channel::getUserName(){return this->_name;}
 
 /*******************************ADD******************************/
 void Channel::addMember(std::vector<Client*> &vec, Client *client){
@@ -68,7 +68,7 @@ void Channel::addMember(std::vector<Client*> &vec, Client *client){
 	(void)it;
 	// if(it != vec.end()){
 	// 	std::cout << "Client already set \n";
-	// 	std::cout << client->getName() << std::endl;
+	// 	std::cout << client->getUserName() << std::endl;
 	// }
 	// else
     vec.push_back(client);

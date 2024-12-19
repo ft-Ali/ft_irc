@@ -6,9 +6,10 @@
 #include <iterator>
 #include <algorithm>
 #include <iostream>
+#include "../inc/Client.hpp"
 #pragma once
 
-class Client;
+
 
 class Channel{
 	private:
@@ -29,7 +30,7 @@ class Channel{
 		Channel(Client *client, std::string const &ChannelName);
 		
 		void parseChannelName();
-		std::string getName();
+		std::string getUserName();
 		bool isOnList(const std::vector<Client*>& vec, Client *client);
 	 size_t size() const {
         return _members.size(); // Retourne le nombre de membres

@@ -64,7 +64,7 @@ void Server::cmdPartAll(Client* client) {
         Channel* channel = channels[i];
         channel->removeMember(client);
         // client->removeChannel(channel)
-        std::cout << "Client has left channel " << channel->getName() << ".\n";
+        std::cout << "Client has left channel " << channel->getUserName() << ".\n";
     }
 }
 
@@ -93,7 +93,7 @@ void Server::processPart(Client *client, std::string &command){
 Client *Server::getClientByName(std::string &name){
 	
 	for (size_t i = 0; i < _clients.size(); ++i) {
-        if (_clients[i]->getName() == name)
+        if (_clients[i]->getUserName() == name)
             return _clients[i];
     }
 	return NULL;

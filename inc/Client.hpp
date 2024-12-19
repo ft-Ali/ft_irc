@@ -15,7 +15,6 @@ class Client {
         int _fd;                                      // File descriptor for the client's socket
         int _port;                                    // Port number used by the client
         std::string _ip;                              // IP address of the client
-        std::string _hostname;                        // Hostname of the client
         std::string _username;                        // Username provided in the USER command
         std::string _nickname;                        // Nickname chosen by the client
         bool _isAuthentificated;
@@ -33,12 +32,13 @@ class Client {
 
         //---------------//Getters
 	    int         getFd() { return _fd; }
-	    bool 		isConnected() { return (_isConnected); }
+        int         getPort() { return _port; }
+	    bool 		isConnected() { return _isConnected; }
+        bool        isOperator() { return _isOperator; }
+        bool        isRegistered() { return _isRegistered; }
 	    std::string getNickName() { return _nickname; }
-	    std::string getUserName() { return _username; }
 	    std::string getIpaddr() { return _ip; }
-	    std::string getHostname() { return _hostname; }
-        std::string getName() { return _username; }
+        std::string getUserName() { return _username; }
         std::vector<Channel*> getJoinedChannels() { return _joinedChannels; }
 
 	    //---------------//Setters
@@ -52,10 +52,7 @@ class Client {
         void setAuthentificated(bool value) { _isAuthentificated = value; }
         void setJoinedChannels(Channel *joinedChannel) { _joinedChannels.push_back(joinedChannel); }
 
-
 	    //---------------//Methods
-        void    removeJoinedChannel(std::vector<Channel*>& vec,  Channel *channel);
-        void print() const {std::cout << "Client: " << _nickname << " at " << _ip << ":" << _port << std::endl; }
-	    // void _channelsInvite(std::string &chname);
-	    // void RmChannelsInvite(std::string &chname);
+        void print();
+        void removeJoinedChannel(std::vector<Channel*>& vec,  Channel *channel);
 };

@@ -73,33 +73,33 @@ void Server::handleSingleJoin(std::string &channelName, std::string &key, Client
 void	Server::checkRestriction(Channel &channel, Client *client, std::string &key){
 	
 	if (channel.checkBanList(client)) {
-        std::cout << "Cannot join " << channel.getName() << ", you are banned.\n";
+        std::cout << "Cannot join " << channel.getUserName() << ", you are banned.\n";
         return;
     }
 	if (channel.getInvitOnly() && !channel.checkWhiteList(client)) {
-        std::cout << "Cannot join " << channel.getName() << ", invite-only mode.\n";
+        std::cout << "Cannot join " << channel.getUserName() << ", invite-only mode.\n";
         return;
     }
 	if (!channel.getKey().empty()) {
         if (key != channel.getKey()) {
-            std::cout << "Invalid key for " << channel.getName() << ".\n";
+            std::cout << "Invalid key for " << channel.getUserName() << ".\n";
             return;
         }
     }
     // if (_channels.size() >= channel.getmaxMembers()) {
-    //     std::cout << "Cannot join " << channel.getName() << ", channel is full.\n";
+    //     std::cout << "Cannot join " << channel.getUserName() << ", channel is full.\n";
     //     return;
     // }
 	channel.addListMember(client);
 	for(size_t i = 0; i < 1; ++i){
-	std::cout <<client->getName() << " Joined " << channel.getName() << " successfully.\n";
+	std::cout <<client->getUserName() << " Joined " << channel.getUserName() << " successfully.\n";
 	}
 }
 
 Channel *Server::getChannelByName(std::string &name){
 	
 	for (size_t i = 0; i < _channels.size(); ++i) {
-        if (_channels[i]->getName() == name)
+        if (_channels[i]->getUserName() == name)
             return _channels[i];
     }
 	return NULL;
@@ -107,7 +107,7 @@ Channel *Server::getChannelByName(std::string &name){
 
 bool Server::channelExist(const std::string& name) {
     for (size_t i = 0; i < _channels.size(); ++i) {
-        if (_channels[i]->getName() == name)
+        if (_channels[i]->getUserName() == name)
             return true;
     }
     return false;
