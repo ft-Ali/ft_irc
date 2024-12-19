@@ -55,6 +55,7 @@ void Server::handleSingleJoin(std::string &channelName, std::string &key, Client
 			channel = new Channel(client, channelName, key);
 		std::cout << &channel << std::endl;
 		_channels.push_back(channel);
+		
 		channel->addListMember(client);
 
 	}

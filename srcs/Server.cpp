@@ -35,8 +35,8 @@ void Server::handlePass(int clientFd, const std::string& message, size_t i) {
     if (password == _password) {
         _authenticatedClients[clientFd] = true;
         _clientRegistered[clientFd] = false;  // Client is not fully registered yet
-        _clients[clientFd - 4].setAuthentificated(true);
-        _clients[clientFd - 4].setRegistered(false);
+        _clients[clientFd - 4]->setAuthentificated(true);
+        _clients[clientFd - 4]->setRegistered(false);
 
         std::cout << "Client FD " << clientFd << " authenticated" << std::endl;
 
@@ -51,7 +51,7 @@ void Server::handlePass(int clientFd, const std::string& message, size_t i) {
         handleUser(clientFd);
     } else {
         _authenticatedClients[clientFd] = false;
-        _clients[clientFd].setAuthentificated(false);
+        _clients[clientFd]->setAuthentificated(false);
         // Failed authentication: Close the connection
         std::string response = "Authentication failed. Disconnecting.\n";
         send(clientFd, response.c_str(), response.size(), 0);
@@ -129,9 +129,9 @@ void Server::handleUser(int clientFd) {
     const char* systemUser = getenv("USER");
     std::string username = systemUser ? systemUser : _clientNicks[clientFd];
     _clientUsers[clientFd] = username;
-    _clients[clientFd].setUsername(username);
+    _clients[clientFd]->setUsername(username);
     _clientRegistered[clientFd] = true;
-    _clients[clientFd].setRegistered(true);
+    _clients[clientFd]->setRegistered(true);
 
     std::string welcome = ":localhost 001 " + _clientNicks[clientFd] + 
                           " :Welcome to the IRC Network, username: " + username + "\n";
@@ -163,7 +163,7 @@ bool Server::authenticateClient(int clientFd, const std::string& message, size_t
 	if (message == _password) {
 		// std::cout << "Client FD " << clientFd << " authenticated" << std::endl;
 		_authenticatedClients[clientFd] = true;
-        _clients[clientFd].setAuthentificated(true);
+        _clients[clientFd]->setAuthentificated(true);
 		std::string response = "Welcome to the server!\n";
 		send(clientFd, response.c_str(), response.size(), 0);
 		return true; // client authenticated
@@ -276,10 +276,8 @@ void Server::handleClientMessage(int i) {
         }
     }
     if(message.rfind("JOIN ", 0) == 0){
-        std::string clientName;
-        std::map<int , std::string>::iterator it = _clientNicks.find(clientFd);
-        if(it != _clientNicks.end())
-            clientName = it->second;
+        std::string clientName = getClientByFd(clientFd);
+        
         // processJoin(clientName, message);
         return;
     }
@@ -307,9 +305,6 @@ void Server::handleClientMessage(int i) {
 
     if(message.rfind("PART ",0) == 0){
         std::string clientName;
-        std::map<int , std::string>::iterator it = _clientNicks.find(clientFd);
-        if(it != _clientNicks.end())
-            clientName = it->second;
         Client *client = getClientByName(clientName);
 
 
@@ -320,7 +315,13 @@ void Server::handleClientMessage(int i) {
     send(clientFd, response.c_str(), response.size(), 0);
 }
 
-
+std::string Server::getClientByFd(const int &clientFd){
+    std::string clientName;
+    std::map<int , std::string>::iterator it = _clientNicks.find(clientFd);
+        if(it != _clientNicks.end())
+            clientName = it->second;
+    return clientName;
+}
 
 void Server::handleNewConnection() {
 

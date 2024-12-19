@@ -1,20 +1,12 @@
 #include "../../inc/Channel.hpp"
 #include "../../inc/Server.hpp"
 
-void    Server::cmdPart(const std::string &command, Client *client){
-    
-
-    std::vector<std::string> args = splitArg(command, ' ');
-    if(command.size() < 2){
-        cmdPartAll(command,client);
+void    Server::cmdPart(const std::string &msg, std::vector<std::string> &args, Client *client){
+    std::vector<std::string> args = splitArg(msg, ' ');
+    if(msg.size() < 2){
+        cmdPartAll(msg,client);
     }
-    std::string channelName = args[1];
-    std::string message = "";
-
-    size_t msgIdx = command.find(':');
-    if(msgIdx != std::string::npos){
-        message = command.substr(msgIdx +1);
-    }
+    std::string channelName = args[0];
 
     Channel *channel = getChannelByName(channelName);
     if(!channel){
@@ -31,35 +23,19 @@ void    Server::cmdPart(const std::string &command, Client *client){
         // client->removeChannel(channel)
 
     channel->leaveChannel(client);
-    std::cout << "Client has left channel " << channelName << " with message: " << message << ".\n";
+    std::cout << "Client has left channel " << channelName << " with message: " << msg << ".\n";
 
 }
 
-void Server::processPart(Client *client, std::string &command){
-    
-    std::string msg = "";
-    std::vector<std::string> arg = splitArg(command, ' ');
-    if (arg.size() < 2) {
-        std::cout << "Error: No channel specified in the PART command.\n";
-        return;
-    }
 
-    size_t msgIdx = command.find(':');
-    if(msgIdx != std::string::npos){
-        msg = command.substr(msgIdx +1);
-    }
-    
-    if(!arg.size() <= 3)
-        cmdPart(arg, client);
-}
 
 void Server::cmdPartMulti(const std::string &message, std::vector<std::string> &arg, Client *client){
 
-    std::vector<std::string> channelName = splitArg(arg[1],',');
+    std::vector<std::string> channelName = splitArg(arg[0],',');
    
     for(size_t i = 0; i < channelName.size(); ++i){
 
-          Channel *channel = getChannelByName(channelName[i]);
+        Channel *channel = getChannelByName(channelName[i]);
         if(!channel){
             std::cout << channelName[i] << "does not exist\n";
             continue ;
@@ -77,6 +53,7 @@ void Server::cmdPartMulti(const std::string &message, std::vector<std::string> &
     }
 
 }
+
 //attente du vector client
 // void Server::cmdPartAll(Client* client) {
 //     const std::vector<Channel*> channels = client->getChannels();
@@ -93,6 +70,28 @@ void Server::cmdPartMulti(const std::string &message, std::vector<std::string> &
 //         std::cout << "Client has left channel " << channel->getName() << ".\n";
 //     }
 // }
+
+void Server::processPart(Client *client, std::string &command){
+  
+    std::string msg = "";
+    size_t msgIdx = command.find("PART");
+    if(msgIdx != std::string::npos)
+        command = command.substr(msgIdx +1);
+    std::vector<std::string> arg = splitArg(command, ' ');
+    // if (arg.size() < 2) {
+    //     std::cout << "Error: No channel specified in the PART command.\n";
+    //     return;
+    // }
+    size_t msgIdx = command.find(':');
+    if(msgIdx != std::string::npos){
+        msg = command.substr(msgIdx +1);
+    }
+    
+    if(!arg.size() <= 2)
+        cmdPart(msg,arg, client);
+    else
+        cmdPartMulti(msg,arg,client);
+}
 
 Client *Server::getClientByName(std::string &name){
 	
