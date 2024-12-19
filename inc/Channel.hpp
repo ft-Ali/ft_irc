@@ -1,3 +1,5 @@
+#pragma once
+
 #include <vector>
 #include <iostream>       
 #include <typeinfo>      
@@ -6,9 +8,7 @@
 #include <iterator>
 #include <algorithm>
 #include <iostream>
-#include "../inc/Client.hpp"
-#pragma once
-
+#include "Client.hpp"
 
 
 class Channel{

@@ -18,6 +18,9 @@
 #include <csignal>
 #include <stdbool.h>
 
+#include "Channel.hpp"
+class Channel;
+
 class Client {
     private:
         int _fd;                                      // File descriptor for the client's socket
@@ -33,7 +36,6 @@ class Client {
         std::vector<Channel*> _joinedChannels;
 	public:
         Client();
-		// Client(int fd, std::string &nick, std::string &name):  _fd(fd), _nickname(nick), _username(name) {};
 		Client(int fd, int clientPort, std::string clientIp, std::string user, std::string nick):  
             _fd(fd), _port(clientPort), _ip(clientIp), _username(user), _nickname(nick), _isAuthentificated(false), _isRegistered(false), _isOperator(false), _isConnected(false) {};
         ~Client() {};
@@ -42,13 +44,14 @@ class Client {
 
         //---------------//Getters
 	    int         getFd() { return _fd; }
-	    // bool        invitedChannels(std::string &ChName);
 	    bool 		isConnected() { return (_isConnected); }
 	    std::string getNickName() { return _nickname; }
 	    std::string getUserName() { return _username; }
 	    std::string getIpaddr() { return _ip; }
 	    std::string getHostname() { return _hostname; }
         std::string getName() { return _username; }
+        std::vector<Channel*> getJoinedChannels() { return _joinedChannels; }
+
 	    //---------------//Setters
 	    void setFd(int fd) { _fd = fd; }
 	    void setNickname(std::string nickname){ _nickname = nickname; }
@@ -58,6 +61,9 @@ class Client {
 	    void setConnected(bool value) { _isConnected = value; }
         void setOperator(bool value) { _isOperator = value; }
         void setAuthentificated(bool value) { _isAuthentificated = value; }
+        void setJoinedChannels(Channel *joinedChannel) { _joinedChannels.push_back(joinedChannel); }
+
+
 	    //---------------//Methods
 	    // void _channelsInvite(std::string &chname);
 	    // void RmChannelsInvite(std::string &chname);

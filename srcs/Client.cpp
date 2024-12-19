@@ -1,4 +1,6 @@
 #include "../inc/Client.hpp"
+#include "../inc/Channel.hpp"
+
 
 Client::Client() {
     bzero(this, sizeof(Client));
@@ -17,5 +19,3 @@ Client &Client::operator=(Client const &src){
 	}
 	return *this;
 }
-
-//-----------//Getters

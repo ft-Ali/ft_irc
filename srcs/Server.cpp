@@ -1,19 +1,18 @@
 #include "../inc/Server.hpp"
 
+ void Server::processJoin(std::string name, const std::string& message) {
+    Client client(name);
+    size_t spacePos = message.find(' ', 5);
+    std::string channelName = message.substr(5, spacePos - 5);
+    channelName.erase(channelName.find_last_not_of("\r\n") + 1);
 
-//  void Server::processJoin(std::string name, const std::string& message) {
-// //    Client client(name);
-//     size_t spacePos = message.find(' ', 5);
-//     std::string channelName = message.substr(5, spacePos - 5);
-//     channelName.erase(channelName.find_last_not_of("\r\n") + 1);
-
-//     std::string password;
-//     if (spacePos != std::string::npos) {
-//         password = message.substr(spacePos + 1);
-//         password.erase(password.find_last_not_of("\r\n") + 1);
-//     }
-//     cmdJoin(channelName, password, &client);
-// } 
+    std::string password;
+    if (spacePos != std::string::npos) {
+        password = message.substr(spacePos + 1);
+        password.erase(password.find_last_not_of("\r\n") + 1);
+    }
+    cmdJoin(channelName, password, &client);
+} 
 
 
 
@@ -36,8 +35,8 @@ void Server::handlePass(int clientFd, const std::string& message, size_t i) {
     if (password == _password) {
         _authenticatedClients[clientFd] = true;
         _clientRegistered[clientFd] = false;  // Client is not fully registered yet
-        _clients[clientFd - 4].setAuthentificated(true);
-        _clients[clientFd - 4].setRegistered(false);
+        _clients[clientFd - 4]->setAuthentificated(true);
+        _clients[clientFd - 4]->setRegistered(false);
 
         std::cout << "Client FD " << clientFd << " authenticated" << std::endl;
 
@@ -52,7 +51,7 @@ void Server::handlePass(int clientFd, const std::string& message, size_t i) {
         handleUser(clientFd);
     } else {
         _authenticatedClients[clientFd] = false;
-        _clients[clientFd].setAuthentificated(false);
+        _clients[clientFd]->setAuthentificated(false);
         // Failed authentication: Close the connection
         std::string response = "Authentication failed. Disconnecting.\n";
         send(clientFd, response.c_str(), response.size(), 0);
@@ -130,9 +129,9 @@ void Server::handleUser(int clientFd) {
     const char* systemUser = getenv("USER");
     std::string username = systemUser ? systemUser : _clientNicks[clientFd];
     _clientUsers[clientFd] = username;
-    _clients[clientFd].setUsername(username);
     _clientRegistered[clientFd] = true;
-    _clients[clientFd].setRegistered(true);
+    _clients[clientFd]->setUsername(username);
+    _clients[clientFd]->setRegistered(true);
 
     std::string welcome = ":localhost 001 " + _clientNicks[clientFd] + 
                           " :Welcome to the IRC Network, username: " + username + "\n";
@@ -164,7 +163,7 @@ bool Server::authenticateClient(int clientFd, const std::string& message, size_t
 	if (message == _password) {
 		// std::cout << "Client FD " << clientFd << " authenticated" << std::endl;
 		_authenticatedClients[clientFd] = true;
-        _clients[clientFd].setAuthentificated(true);
+        _clients[clientFd]->setAuthentificated(true);
 		std::string response = "Welcome to the server!\n";
 		send(clientFd, response.c_str(), response.size(), 0);
 		return true; // client authenticated
@@ -240,10 +239,9 @@ void Server::handleClientMessage(int i) {
                 const char* systemUser = getenv("USER");
                 std::string username = systemUser ? systemUser : "default_user"; // Default USER
                 _clientNicks[clientFd] = nickname;                
-                _clients[clientFd].setNickname(nickname);
-
                 _clientUsers[clientFd] = username;
-                _clients[clientFd].setUsername(username);
+                _clients[clientFd]->setNickname(nickname);
+                _clients[clientFd]->setUsername(username);
 
                 // Send NICK and USER commands automatically
                 // handleNick(clientFd, "NICK " + nickname + "\r\n");
@@ -269,7 +267,7 @@ void Server::handleClientMessage(int i) {
             }
             std::string username = systemUser ? systemUser : "default_user";
             _clientUsers[clientFd] = username;
-            _clients[clientFd].setUsername(username);
+            _clients[clientFd]->setUsername(username);
 
 
             handleUser(clientFd);
@@ -281,7 +279,7 @@ void Server::handleClientMessage(int i) {
         std::map<int , std::string>::iterator it = _clientNicks.find(clientFd);
         if(it != _clientNicks.end())
             clientName = it->second;
-        // processJoin(clientName, message);
+        processJoin(clientName, message);
         return;
     }
      if (message.rfind("PING ", 0) == 0) {
@@ -301,6 +299,7 @@ void Server::handleClientMessage(int i) {
         _authenticatedClients.erase(clientFd);
         _clientNicks.erase(clientFd);
         _clientRegistered.erase(clientFd);
+
         fds.erase(fds.begin() + i);
         std::cout << "Client FD " << clientFd << " disconnected" << std::endl;
         return;
@@ -336,11 +335,6 @@ void Server::handleNewConnection() {
     _clientUsers[clientFd] = "";
     _authenticatedClients[clientFd] = false;
     _clientRegistered[clientFd] = false;
-    // _clients[clientFd - 4].setNickname("");
-    // _clients[clientFd - 4].setUsername("");
-    // _clients[clientFd - 4].setAuthentificated(false);
-    // _clients[clientFd - 4].setRegistered(false);
-
 
     // Get the system user name to use as a default nickname
     const char* systemUser = getenv("USER");
@@ -353,7 +347,6 @@ void Server::handleNewConnection() {
 
     // Assign the nickname to the client
     _clientNicks[clientFd] = nickname;
-    // _clients[clientFd - 4].setNickname(nickname);
 
     // Adding all client infos to _client vector in Server
     _clients.emplace_back(clientFd, clientPort, clientIp, "", nickname);

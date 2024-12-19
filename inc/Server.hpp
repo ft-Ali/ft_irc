@@ -29,7 +29,7 @@ class Server {
         int _suffix;
 
 		static Server* instance;
-		std::vector<Client> _clients; //list Fd et IP address clients
+		std::vector<Client*> _clients; //list Fd et IP address clients
 		std::vector<Channel*> _channels; //-> vector of channels
 		std::vector<struct pollfd> fds; //-> vector of pollfd
 		std::map<int, bool> _authenticatedClients; //-> map of client fds and authentication status
