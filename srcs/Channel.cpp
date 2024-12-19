@@ -71,7 +71,12 @@ void Channel::addMember(std::vector<Client*> &vec, Client *client){
 	// 	std::cout << client->getUserName() << std::endl;
 	// }
 	// else
-    vec.push_back(client);
+	// for(std::vector<Client*>::iterator it = _members.begin(); it != _members.end(); ++it){
+		
+	// 	std::cout <<"client :" << client->getName() << std::endl;
+
+	// }
+		vec.push_back(client);
 }
 
 void Channel::addMode(char mode){

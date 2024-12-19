@@ -19,7 +19,7 @@
 
 #include "Client.hpp"
 #include "Channel.hpp"
-#pragma once
+#include "Client.hpp"
 
 class Server {
 	private:
@@ -60,6 +60,7 @@ class Server {
 		void handlePass(int clientFd, const std::string& message, size_t i);
 		void processJoin(std::string Client, const std::string& message);
 		void closeServer();
+		void handleCap(int clientFd, const std::string& message);
 		/************************************COMMAND********************************************/
 		void cmdJoin(std::string &nameChannel, std::string &key, Client *client);
 		bool channelExist(const std::string& name);

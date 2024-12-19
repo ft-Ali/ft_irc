@@ -8,8 +8,24 @@
 #include <iostream>
 #pragma once
 
+#include <iostream>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <string.h>
+#include <stdio.h>
+#include <sstream>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <vector>
+#include <poll.h>
+#include <map>
+#include <stdlib.h>
+#include <csignal>
+#include <stdbool.h>
 class Channel;
-
 class Client {
     private:
         int _fd;                                      // File descriptor for the client's socket

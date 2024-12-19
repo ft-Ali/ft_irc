@@ -74,6 +74,9 @@ void Server::processPart(Client *client, std::string &command){
     size_t cmdIdx = command.find("PART");
     if(cmdIdx != std::string::npos)
         command = command.substr(cmdIdx +1);
+    size_t cmdIdx = command.find("PART");
+    if(cmdIdx != std::string::npos)
+        command = command.substr(cmdIdx +1);
     std::vector<std::string> arg = splitArg(command, ' ');
     // if (arg.size() < 2) {
     //     std::cout << "Error: No channel specified in the PART command.\n";
