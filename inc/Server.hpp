@@ -60,19 +60,26 @@ class Server {
 		void handlePass(int clientFd, const std::string& message, size_t i);
 		void processJoin(std::string Client, const std::string& message);
 		void closeServer();
+		/************************************COMMAND********************************************/
 		void cmdJoin(std::string &nameChannel, std::string &key, Client *client);
 		bool channelExist(const std::string& name);
 		void checkRestriction(Channel &channel, Client *client, std::string &key);
 		void handleSingleJoin(std::string &channelName, std::string &key, Client *client);
 		Channel *getChannelByName(std::string &name);
-		void	removeClient(Client *client, Channel *channel);
-		
+		void    cmdPart(const std::string &message, std::vector<std::string>&arg ,Client *client);
+		void    cmdPartMulti(const std::string &message, std::vector<std::string>&arg ,Client *client);
+		Client *getClientByName(std::string &name);
+		std::string getClientByFd(const int &ClientFd);
+		void processPart(Client *client, std::string &command);
+		/***************************************************************************************/
+
+		// void	cmdPartAll(Client* client);
 		// void listen();
 		// void accept();
 		// void read();
 		// void send();
 		// void close();
 };
-
+std::vector<std::string> splitArg(const std::string &str, char delimiter);
 
 #endif
