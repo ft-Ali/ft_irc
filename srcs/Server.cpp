@@ -27,10 +27,13 @@
 void Server::handlePass(int clientFd, const std::string& message, size_t i) {
     std::cout << "Client FD " << clientFd << " sent a PASS command." << std::endl;
     std::cout << "Real password: " << _password << std::endl;
-    std::string password = message.substr(5); // Remove "PASS "
-    password.erase(password.find_last_not_of("\r\n") + 1); // Clean up the password
+    std::string password = message.substr(5);
 
-    // If the password is empty, disconnect
+    password.erase(password.find_last_not_of("\r\n") + 1); // Supprime '\r' et '\n' en fin de chaîne
+    password.erase(password.find_last_not_of(" \t") + 1);  // Supprime les espaces et tabulations
+
+    std::cout << "Password after cleanup: '" << password << "'\n";
+
     if (password.empty()) {
         std::string response = "ERROR: Password cannot be empty. Disconnecting.\n";
         send(clientFd, response.c_str(), response.size(), 0);
@@ -41,17 +44,13 @@ void Server::handlePass(int clientFd, const std::string& message, size_t i) {
         fds.erase(fds.begin() + i);
         return;
     }
-
     if (password == _password) {
         _authenticatedClients[clientFd] = true;
-        // std::cout << clientFd-4 << 
-        // _clients[clientFd -1]->setAuthentificated(true);
-        // _clients[clientFd -1]->setRegistered(false);
-        std::string response = "Use /quote USER\n";
+        std::string response = "Welcome! Use /quote USER to continue.\n";
         send(clientFd, response.c_str(), response.size(), 0);
         std::cout << "Client FD " << clientFd << " authenticated successfully." << std::endl;
     } else {
-        std::string response = "Authentication failed. Disconnecting.\n";
+        std::string response = "ERROR: Authentication failed. Disconnecting.\n";
         send(clientFd, response.c_str(), response.size(), 0);
         close(clientFd);
         _authenticatedClients.erase(clientFd);
@@ -83,6 +82,7 @@ void Server::handleNick(int clientFd, const std::string& message) {
         send(clientFd, response.c_str(), response.size(), 0);
         return;
     }
+std::cout << "nick: '" << newNickname<< "'n"<<std::endl;
 
     // Check if the nickname is already in use
     std::string baseNickname = newNickname;
@@ -124,6 +124,8 @@ void Server::handleUser(int clientFd) {
     }
     // Automatically use system's username or predefined values for username
     const char* systemUser = getenv("USER");
+std::cout << "user: '" << systemUser<< "'u"<<std::endl;
+
     std::string username = systemUser ? systemUser : _clientNicks[clientFd]; // Set default if not available
     _clientUsers[clientFd] = username;
     _clientRegistered[clientFd] = true;
@@ -237,31 +239,51 @@ void Server::handleClientMessage(int i) {
 
     buffer[ret] = '\0'; // Null-terminate the received message
     std::string message(buffer);
-    std::cout << "Received message : " << "("<< clientFd << ") " << message << std::endl;
+    std::cout << "Received message (" << clientFd << "): " << message  << std::endl;
 
+    // Split the message into lines in case multiple commands are received
+    std::istringstream stream(message);
+    std::string line;
+    while (std::getline(stream, line)) {
+        // Clean up the line (remove \r or extra spaces)
+        line.erase(line.find_last_not_of("\r\n") + 1);
 
-    if(message.find("PASS") == 0) {
-        handlePass(clientFd, message, i);
-    } else if (message.find("NICK") == 0) {
-        handleNick(clientFd, message);
-    } else if (message.find("USER") == 0) {
-        handleUser(clientFd);
-    } else if (message.find("CAP") == 0) {
-        handleCap(clientFd, message);
-    } else if (message.find("JOIN") == 0) {
-        std::string clientName = getClientByFd(clientFd);
-      processJoin(clientName, message);
-    } else if (message.find("PING") == 0) {
-        std::string pong = "PONG " + message.substr(5) + "\n";
-        send(clientFd, pong.c_str(), pong.size(), 0);
-    } else if (message.find("QUIT") == 0) {
-        std::string response = "QUIT\n";
-        send(clientFd, response.c_str(), response.size(), 0);
-        close(clientFd);
-        _authenticatedClients.erase(clientFd);
-        _clientNicks.erase(clientFd);
-        _clientRegistered.erase(clientFd);
-        fds.erase(fds.begin() + i);
+        if (line.empty()) continue; // Skip empty lines
+
+        std::cout << "Processing command: " << line << std::endl;
+
+        // Handle specific commands
+       if (_authenticatedClients.find(clientFd) == _authenticatedClients.end() || !_authenticatedClients[clientFd]) {
+        if (message.find("PASS ") == 0) {
+            // Handle the PASS command here
+            handlePass(clientFd, message, i);
+        }
+        } else if (line.find("NICK ") == 0) {
+            handleNick(clientFd, line);
+        } else if (line.find("USER ") == 0) {
+            handleUser(clientFd);
+        } else if (line.find("CAP") == 0) {
+            handleCap(clientFd, line);
+        } else if (line.find("JOIN") == 0) {
+            std::string clientName = getClientByFd(clientFd);
+            processJoin(clientName, line);
+        } else if (line.find("PING") == 0) {
+            std::string pong = "PONG " + line.substr(5) + "\n";
+            send(clientFd, pong.c_str(), pong.size(), 0);
+        } else if (line.find("QUIT") == 0) {
+            std::string response = "Goodbye!\n";
+            send(clientFd, response.c_str(), response.size(), 0);
+            close(clientFd);
+            _authenticatedClients.erase(clientFd);
+            _clientNicks.erase(clientFd);
+            _clientRegistered.erase(clientFd);
+            fds.erase(fds.begin() + i);
+            return; // Exit after handling QUIT
+        // } else {
+        //     std::cout << "Unknown command: " << line << std::endl;
+        //     std::string response = "ERROR: Unknown command.\n";
+        //     send(clientFd, response.c_str(), response.size(), 0);
+        }
     }
 }
 
@@ -312,8 +334,7 @@ void Server::serverLoop() {
 
 		for (size_t i = 0; i < fds.size(); ++i) { // loop through all fds (clients)
 			if (fds[i].revents & POLLIN) { // POLLIN -> there is data to read
-				_authenticatedClients[i] = false;
-                _clientRegistered[i] = false;
+				
                 if (fds[i].fd == _serSocketFd) { // new connection
 					handleNewConnection();
 				} else {
