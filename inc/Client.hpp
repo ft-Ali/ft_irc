@@ -1,24 +1,13 @@
+#include <vector>
+#include <iostream>       
+#include <typeinfo>      
+#include <exception>
+#include <ctime>
+#include <iterator>
+#include <algorithm>
+#include <iostream>
 #pragma once
 
-#include <iostream>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <sys/types.h>
-#include <unistd.h>
-#include <string.h>
-#include <stdio.h>
-#include <sstream>
-#include <stdlib.h>
-#include <stdbool.h>
-#include <vector>
-#include <poll.h>
-#include <map>
-#include <stdlib.h>
-#include <csignal>
-#include <stdbool.h>
-
-#include "Channel.hpp"
 class Channel;
 
 class Client {
@@ -65,6 +54,7 @@ class Client {
 
 
 	    //---------------//Methods
+        void    removeJoinedChannel(std::vector<Channel*>& vec,  Channel *channel);
 	    // void _channelsInvite(std::string &chname);
 	    // void RmChannelsInvite(std::string &chname);
 };

@@ -1,5 +1,3 @@
-#pragma once
-
 #include <vector>
 #include <iostream>       
 #include <typeinfo>      
@@ -8,8 +6,9 @@
 #include <iterator>
 #include <algorithm>
 #include <iostream>
-#include "Client.hpp"
+#pragma once
 
+class Client;
 
 class Channel{
 	private:

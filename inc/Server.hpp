@@ -1,6 +1,3 @@
-#ifndef SERVER_HPP
-# define SERVER_HPP
-
 #include <iostream>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -18,8 +15,10 @@
 #include <stdlib.h>
 #include <csignal>
 #include <stdbool.h>
-#include "Channel.hpp"
 
+#include "Client.hpp"
+#include "Channel.hpp"
+#pragma once
 
 class Server {
 	private:
@@ -67,13 +66,13 @@ class Server {
 		void handleSingleJoin(std::string &channelName, std::string &key, Client *client);
 		Channel *getChannelByName(std::string &name);
 		void    cmdPart(const std::string &message, std::vector<std::string>&arg ,Client *client);
+		void	cmdPartAll(Client* client);
 		void    cmdPartMulti(const std::string &message, std::vector<std::string>&arg ,Client *client);
 		Client *getClientByName(std::string &name);
 		std::string getClientByFd(const int &ClientFd);
 		void processPart(Client *client, std::string &command);
 		/***************************************************************************************/
 
-		// void	cmdPartAll(Client* client);
 		// void listen();
 		// void accept();
 		// void read();
@@ -81,5 +80,3 @@ class Server {
 		// void close();
 };
 std::vector<std::string> splitArg(const std::string &str, char delimiter);
-
-#endif

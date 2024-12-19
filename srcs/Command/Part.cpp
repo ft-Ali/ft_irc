@@ -1,10 +1,8 @@
-#include "../../inc/Channel.hpp"
 #include "../../inc/Server.hpp"
 
 void    Server::cmdPart(const std::string &msg, std::vector<std::string> &args, Client *client){
-    std::vector<std::string> args = splitArg(msg, ' ');
     if(msg.size() < 2){
-        cmdPartAll(msg,client);
+        cmdPartAll(client);
     }
     std::string channelName = args[0];
 
@@ -55,28 +53,27 @@ void Server::cmdPartMulti(const std::string &message, std::vector<std::string> &
 }
 
 //attente du vector client
-// void Server::cmdPartAll(Client* client) {
-//     const std::vector<Channel*> channels = client->getChannels();
+void Server::cmdPartAll(Client* client) {
+    const std::vector<Channel*> channels = client->getJoinedChannels();
 
-//     if (channels.empty()) {
-//         std::cout << "Error: You are not in any channels.\n";
-//         return;
-//     }
-
-//     for (size_t i = 0; i < channels.size(); ++i) {
-//         Channel* channel = channels[i];
-//         channel->removeMember(client);
-//         // client->removeChannel(channel)
-//         std::cout << "Client has left channel " << channel->getName() << ".\n";
-//     }
-// }
+    if (channels.empty()) {
+        std::cout << "Error: You are not in any channels.\n";
+        return;
+    }
+    for (size_t i = 0; i < channels.size(); ++i) {
+        Channel* channel = channels[i];
+        channel->removeMember(client);
+        // client->removeChannel(channel)
+        std::cout << "Client has left channel " << channel->getName() << ".\n";
+    }
+}
 
 void Server::processPart(Client *client, std::string &command){
   
     std::string msg = "";
-    size_t msgIdx = command.find("PART");
-    if(msgIdx != std::string::npos)
-        command = command.substr(msgIdx +1);
+    size_t cmdIdx = command.find("PART");
+    if(cmdIdx != std::string::npos)
+        command = command.substr(cmdIdx +1);
     std::vector<std::string> arg = splitArg(command, ' ');
     // if (arg.size() < 2) {
     //     std::cout << "Error: No channel specified in the PART command.\n";
@@ -87,7 +84,7 @@ void Server::processPart(Client *client, std::string &command){
         msg = command.substr(msgIdx +1);
     }
     
-    if(!arg.size() <= 2)
+    if(arg.size() <= 2)
         cmdPart(msg,arg, client);
     else
         cmdPartMulti(msg,arg,client);

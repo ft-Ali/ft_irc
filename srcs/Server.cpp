@@ -1,20 +1,17 @@
 #include "../inc/Server.hpp"
 
  void Server::processJoin(std::string name, const std::string& message) {
-    Client client(name);
     size_t spacePos = message.find(' ', 5);
     std::string channelName = message.substr(5, spacePos - 5);
     channelName.erase(channelName.find_last_not_of("\r\n") + 1);
-
+    Client *client = getClientByName(name);
     std::string password;
     if (spacePos != std::string::npos) {
         password = message.substr(spacePos + 1);
         password.erase(password.find_last_not_of("\r\n") + 1);
     }
-    cmdJoin(channelName, password, &client);
+    cmdJoin(channelName, password, client);
 } 
-
-
 
 // Function that handles the PASS command sent by the client.
 // This command is used to authenticate the client with a password.
@@ -61,8 +58,6 @@ void Server::handlePass(int clientFd, const std::string& message, size_t i) {
         std::cout << "Client FD " << clientFd << " disconnected due to incorrect password." << std::endl;
     }
 }
-
-
 
 
 // Function that handles the NICK command sent by the client.
@@ -275,10 +270,8 @@ void Server::handleClientMessage(int i) {
         }
     }
     if(message.rfind("JOIN ", 0) == 0){
-        std::string clientName;
-        std::map<int , std::string>::iterator it = _clientNicks.find(clientFd);
-        if(it != _clientNicks.end())
-            clientName = it->second;
+        std::string clientName = getClientByFd(clientFd);
+        
         processJoin(clientName, message);
         return;
     }
@@ -305,12 +298,23 @@ void Server::handleClientMessage(int i) {
         return;
     }
 
+    // if(message.rfind("PART ",0) == 0){
+        // std::string clientName;
+        // Client *client = getClientByName(clientName);
+    // }
     // Handle other messages for registered clients
     std::cout << "Message from client (" << "plouf" << "): " << message << std::endl;
     std::string response = "Server received: " + message + "\n";
     send(clientFd, response.c_str(), response.size(), 0);
 }
 
+std::string Server::getClientByFd(const int &clientFd){
+    std::string clientName;
+    std::map<int , std::string>::iterator it = _clientNicks.find(clientFd);
+        if(it != _clientNicks.end())
+            clientName = it->second;
+    return clientName;
+}
 
 void Server::handleNewConnection() {
 
@@ -321,9 +325,9 @@ void Server::handleNewConnection() {
     if (clientFd == -1) 
         throw(std::runtime_error("error: accept() failed"));
 
-    char clientIp[INET_ADDRSTRLEN]; // Creates a char array to store the client’s IP address in human-readable form.
-    inet_ntop(AF_INET, &clientAddr.sin_addr, clientIp, INET_ADDRSTRLEN); // Converts the binary representation of the client’s IP address into a human-readable string 
-    int clientPort = ntohs(clientAddr.sin_port); // Converts the client’s port number from network byte order to host byte order and stores it in clientPort.
+    // char clientIp[INET_ADDRSTRLEN]; // Creates a char array to store the client’s IP address in human-readable form.
+    // inet_ntop(AF_INET, &clientAddr.sin_addr, clientIp, INET_ADDRSTRLEN); // Converts the binary representation of the client’s IP address into a human-readable string 
+    // int clientPort = ntohs(clientAddr.sin_port); // Converts the client’s port number from network byte order to host byte order and stores it in clientPort.
 
     struct pollfd client;
     client.fd = clientFd;
@@ -349,7 +353,7 @@ void Server::handleNewConnection() {
     _clientNicks[clientFd] = nickname;
 
     // Adding all client infos to _client vector in Server
-    _clients.emplace_back(clientFd, clientPort, clientIp, "", nickname);
+    // _clients.emplace_back(clientFd, clientPort, clientIp, "", nickname);
 
     // authentificate client if password is set
     if (!_password.empty()) {
