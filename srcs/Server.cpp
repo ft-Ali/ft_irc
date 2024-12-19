@@ -44,8 +44,9 @@ void Server::handlePass(int clientFd, const std::string& message, size_t i) {
 
     if (password == _password) {
         _authenticatedClients[clientFd] = true;
-        _clients[clientFd - 4]->setAuthentificated(true);
-        _clients[clientFd - 4]->setRegistered(false);
+        // std::cout << clientFd-4 << 
+        // _clients[clientFd -1]->setAuthentificated(true);
+        // _clients[clientFd -1]->setRegistered(false);
         std::string response = "Use /quote USER\n";
         send(clientFd, response.c_str(), response.size(), 0);
         std::cout << "Client FD " << clientFd << " authenticated successfully." << std::endl;
@@ -121,14 +122,13 @@ void Server::handleUser(int clientFd) {
         send(clientFd, response.c_str(), response.size(), 0);
         return;
     }
-
     // Automatically use system's username or predefined values for username
     const char* systemUser = getenv("USER");
     std::string username = systemUser ? systemUser : _clientNicks[clientFd]; // Set default if not available
     _clientUsers[clientFd] = username;
     _clientRegistered[clientFd] = true;
-    _clients[clientFd]->setUsername(username);
-    _clients[clientFd]->setRegistered(true);
+    _clients[clientFd -4]->setUsername(username);
+    _clients[clientFd -4]->setRegistered(true);
     std::string welcome = ":localhost 001 " + _clientNicks[clientFd] + 
                           " :Welcome to the IRC Network, username: " + username + "\n";
     send(clientFd, welcome.c_str(), welcome.size(), 0);
@@ -274,7 +274,7 @@ void Server::handleNewConnection() {
       int clientFd = accept(_serSocketFd, (struct sockaddr*)&clientAddr,  &clientAddrLen); // Accept new connection // Accept new connection
     if (clientFd == -1) 
         throw(std::runtime_error("error: accept() failed"));
- char clientIp[INET_ADDRSTRLEN]; // Creates a char array to store the client’s IP address in human-readable form.
+    char clientIp[INET_ADDRSTRLEN]; // Creates a char array to store the client’s IP address in human-readable form.
     inet_ntop(AF_INET, &clientAddr.sin_addr, clientIp, INET_ADDRSTRLEN); // Converts the binary representation of the client’s IP address into a human-readable string 
     int clientPort = ntohs(clientAddr.sin_port); // Converts the client’s port number from network byte order to host byte order and stores it in clientPort.
     struct pollfd client;
@@ -300,7 +300,6 @@ void Server::handleNewConnection() {
     _clientNicks[clientFd] = nickname;
     // Adding all client infos to _client vector in Server
     _clients.push_back(new Client(clientFd, clientPort, clientIp, "", nickname));
-    
 
 }
 
@@ -344,7 +343,7 @@ void Server::serverInit() {
 	if (bind(_serSocketFd, (struct sockaddr *)&addr, sizeof(addr)) == -1)
 		throw(std::runtime_error("error: failed to bind _serSocketFd to _port"));
 	if (listen(_serSocketFd, SOMAXCONN) == -1)
-		throw(std::runtime_error("listen() faild"));
+		throw(std::runtime_error("listen() failed"));
 
 	communication.fd = _serSocketFd;
 	communication.events = POLLIN;
