@@ -2,10 +2,9 @@
 #include "../../inc/Server.hpp"
 
 void    Server::cmdPart(const std::string &msg, std::vector<std::string> &args, Client *client){
-    std::vector<std::string> args = splitArg(msg, ' ');
-    if(msg.size() < 2){
-        cmdPartAll(msg,client);
-    }
+    // if(msg.size() < 2){
+    //     cmdPartAll(msg,client);
+    // }
     std::string channelName = args[0];
 
     Channel *channel = getChannelByName(channelName);
@@ -74,9 +73,9 @@ void Server::cmdPartMulti(const std::string &message, std::vector<std::string> &
 void Server::processPart(Client *client, std::string &command){
   
     std::string msg = "";
-    size_t msgIdx = command.find("PART");
-    if(msgIdx != std::string::npos)
-        command = command.substr(msgIdx +1);
+    size_t cmdIdx = command.find("PART");
+    if(cmdIdx != std::string::npos)
+        command = command.substr(cmdIdx +1);
     std::vector<std::string> arg = splitArg(command, ' ');
     // if (arg.size() < 2) {
     //     std::cout << "Error: No channel specified in the PART command.\n";
@@ -87,7 +86,7 @@ void Server::processPart(Client *client, std::string &command){
         msg = command.substr(msgIdx +1);
     }
     
-    if(!arg.size() <= 2)
+    if(arg.size() <= 2)
         cmdPart(msg,arg, client);
     else
         cmdPartMulti(msg,arg,client);

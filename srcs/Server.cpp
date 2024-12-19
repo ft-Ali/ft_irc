@@ -303,12 +303,12 @@ void Server::handleClientMessage(int i) {
         return;
     }
 
-    if(message.rfind("PART ",0) == 0){
-        std::string clientName;
-        Client *client = getClientByName(clientName);
+    // if(message.rfind("PART ",0) == 0){
+    //     std::string clientName;
+    //     Client *client = getClientByName(clientName);
 
 
-    }
+    // }
     // Handle other messages for registered clients
     std::cout << "Message from client (" << "plouf" << "): " << message << std::endl;
     std::string response = "Server received: " + message + "\n";
