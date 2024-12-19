@@ -18,6 +18,7 @@
 #include <csignal>
 #include <stdbool.h>
 
+class Channel;
 class Client {
     private:
         int _fd;                                      // File descriptor for the client's socket
