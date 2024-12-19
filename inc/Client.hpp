@@ -25,7 +25,7 @@ class Client {
         std::vector<Channel*> _joinedChannels;
 	public:
         Client();
-		Client(int fd, int clientPort, std::string clientIp, std::string user, std::string nick):  
+		Client(int fd, int clientPort, std::string clientIp, std::string user, std::string nick): 
             _fd(fd), _port(clientPort), _ip(clientIp), _username(user), _nickname(nick), _isAuthentificated(false), _isRegistered(false), _isOperator(false), _isConnected(false) {};
         ~Client() {};
         Client(Client const &src){*this = src;}
@@ -55,6 +55,7 @@ class Client {
 
 	    //---------------//Methods
         void    removeJoinedChannel(std::vector<Channel*>& vec,  Channel *channel);
+        void print() const {std::cout << "Client: " << _nickname << " at " << _ip << ":" << _port << std::endl; }
 	    // void _channelsInvite(std::string &chname);
 	    // void RmChannelsInvite(std::string &chname);
 };

@@ -325,9 +325,9 @@ void Server::handleNewConnection() {
     if (clientFd == -1) 
         throw(std::runtime_error("error: accept() failed"));
 
-    // char clientIp[INET_ADDRSTRLEN]; // Creates a char array to store the client’s IP address in human-readable form.
-    // inet_ntop(AF_INET, &clientAddr.sin_addr, clientIp, INET_ADDRSTRLEN); // Converts the binary representation of the client’s IP address into a human-readable string 
-    // int clientPort = ntohs(clientAddr.sin_port); // Converts the client’s port number from network byte order to host byte order and stores it in clientPort.
+    char clientIp[INET_ADDRSTRLEN]; // Creates a char array to store the client’s IP address in human-readable form.
+    inet_ntop(AF_INET, &clientAddr.sin_addr, clientIp, INET_ADDRSTRLEN); // Converts the binary representation of the client’s IP address into a human-readable string 
+    int clientPort = ntohs(clientAddr.sin_port); // Converts the client’s port number from network byte order to host byte order and stores it in clientPort.
 
     struct pollfd client;
     client.fd = clientFd;
@@ -353,6 +353,8 @@ void Server::handleNewConnection() {
     _clientNicks[clientFd] = nickname;
 
     // Adding all client infos to _client vector in Server
+    _clients.push_back(new Client(clientFd, clientPort, clientIp, "", nickname));
+    _clients.back()->print();
     // _clients.emplace_back(clientFd, clientPort, clientIp, "", nickname);
 
     // authentificate client if password is set

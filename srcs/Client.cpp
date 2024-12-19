@@ -1,5 +1,5 @@
 #include "../inc/Client.hpp"
-
+#include <strings.h>
 
 
 Client::Client() {
