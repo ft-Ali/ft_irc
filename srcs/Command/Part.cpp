@@ -2,13 +2,15 @@
 #include "../../inc/Channel.hpp"
 
 void    Server::cmdPart(const std::string &msg, std::vector<std::string> &args, Client *client){
-    if(msg.size() < 2){
-        cmdPartAll(client);
-    }
     std::string channelName = args[0];
 
     Channel *channel = getChannelByName(channelName);
-    if(!channel){
+    if(!client){
+        std::cout << "vide \n";
+        return;}
+    std::vector<Channel*> channels = client->getJoinedChannels();
+    
+    if(!channel || channels.empty()){
         std::cout << channelName << "does not exist\n";
         return ;
     }
@@ -19,10 +21,18 @@ void    Server::cmdPart(const std::string &msg, std::vector<std::string> &args, 
     }
     //send message
         // channel->broadcastMessage(client, "PART " + channelName + " :" + message);
-        // client->removeChannel(channel)
-
-    channel->leaveChannel(client);
+    // client->removeJoinedChannel(channels, channel);
+    client->removeJoinedChannel(_channels, channel);
+    channel->removeClientList(_clients, client);
+    // channel->leaveChannel(client);
     std::cout << "Client has left channel " << channelName << " with message: " << msg << ".\n";
+    // if(_channels.empty())
+    const std::vector<Channel*> chans = client->getJoinedChannels();
+
+    std::cout << "Client left  " << chans.size() << " channel(s):\n";
+    for (size_t i = 0; i < chans.size(); ++i) {
+        std::cout << " - " << chans[i] << " (" << chans[i]->getName() << ")\n";
+    }
 
 }
 
@@ -31,6 +41,7 @@ void    Server::cmdPart(const std::string &msg, std::vector<std::string> &args, 
 void Server::cmdPartMulti(const std::string &message, std::vector<std::string> &arg, Client *client){
 
     std::vector<std::string> channelName = splitArg(arg[0],',');
+    std::vector<Channel*> channels = client->getJoinedChannels();
    
     for(size_t i = 0; i < channelName.size(); ++i){
 
@@ -45,41 +56,29 @@ void Server::cmdPartMulti(const std::string &message, std::vector<std::string> &
     }
     //send message
         // channel->broadcastMessage(client, "PART " + channelName + " :" + message);
-        // client->removeChannel(channel)
-
+    client->removeJoinedChannel(channels, channel);
     channel->leaveChannel(client);
     std::cout << "Client has left channel " << channelName[i] << " with message: " << message << ".\n";
     }
 
 }
 
-//attente du vector client
-void Server::cmdPartAll(Client* client) {
-    const std::vector<Channel*> channels = client->getJoinedChannels();
-
-    if (channels.empty()) {
-        std::cout << "Error: You are not in any channels.\n";
-        return;
-    }
-    for (size_t i = 0; i < channels.size(); ++i) {
-        Channel* channel = channels[i];
-        channel->removeMember(client);
-        // client->removeChannel(channel)
-        std::cout << "Client has left channel " << channel->getName() << ".\n";
-    }
-}
-
 void Server::processPart(Client *client, std::string &command){
-  
+
     std::string msg = "";
-    size_t cmdIdx = command.find("PART");
+    std::cout<<"command full : '" << command << "'\n";
+
+    size_t cmdIdx = command.find(' ',4);
+
     if(cmdIdx != std::string::npos)
         command = command.substr(cmdIdx +1);
+    std::cout<<"cmd cut : '" <<command<< "'\n";
+    
     std::vector<std::string> arg = splitArg(command, ' ');
-    // if (arg.size() < 2) {
-    //     std::cout << "Error: No channel specified in the PART command.\n";
-    //     return;
-    // }
+    if (arg.size() < 2) {
+        std::cout << "Error: No channel specified in the PART command.\n";
+        return;
+    }
     size_t msgIdx = command.find(':');
     if(msgIdx != std::string::npos){
         msg = command.substr(msgIdx +1);
@@ -92,9 +91,7 @@ void Server::processPart(Client *client, std::string &command){
 }
 
 Client *Server::getClientByName(std::string &name){
-	std::cout << "name send : " << name << std::endl;
 	for (size_t i = 0; i < _clients.size(); ++i) {
-        std::cout << "name : " << _clients[i]->getNickName() << "username : " << _clients[i]->getUserName() << std::endl;
         if (_clients[i]->getNickName() == name)
             return _clients[i];
     }

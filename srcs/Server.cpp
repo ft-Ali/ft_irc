@@ -1,22 +1,7 @@
 #include "../inc/Server.hpp"
 
 
- void Server::processJoin(std::string name, const std::string& message) {
-    size_t spacePos = message.find(' ', 5);
-    std::string channelName = message.substr(5, spacePos - 5);
-    channelName.erase(channelName.find_last_not_of("\r\n") + 1);
-    Client *client = getClientByName(name);
-      if (!client) {
-        std::cerr << "Error: Client '" << name << "' not found.\n";
-        return;
-    }
-    std::string password;
-    if (spacePos != std::string::npos) {
-        password = message.substr(spacePos + 1);
-        password.erase(password.find_last_not_of("\r\n") + 1);
-    }
-    cmdJoin(channelName, password, client);
-} 
+
 
 // Function that handles the PASS command sent by the client.
 // This command is used to authenticate the client with a password.
@@ -49,7 +34,7 @@ void Server::handlePass(int clientFd, const std::string& message, size_t i) {
         std::string response = "Welcome! Use /quote USER to continue.\n";
         send(clientFd, response.c_str(), response.size(), 0);
         std::cout << "Client FD " << _clients[clientFd -4]->getUserName() << " authenticated successfully." << std::endl;
-    } else {
+    } else if(!_authenticatedClients[clientFd]) {
         std::string response = "ERROR: Authentication failed. Disconnecting.\n";
         send(clientFd, response.c_str(), response.size(), 0);
         close(clientFd);
@@ -149,7 +134,6 @@ for (size_t i = 0; i < fds.size(); ++i) {
 }
 
 // Libération des objets Client*
-std::cout << "CLient sizeeeee: " << _clients.size() << std::endl;
 for (size_t i = 0; i < _clients.size(); ++i) {
     delete _clients[i];
 }
@@ -195,7 +179,7 @@ void Server::handleCap(int clientFd, const std::string& message) {
         return;
     }
 
-    if (message.find("CAP LS") == 0) {
+    if (message.find("CAP LS") == 0 && !_authenticatedClients[clientFd]) {
         std::string response = "CAP * LS :multi-prefix\n";
         send(clientFd, response.c_str(), response.size(), 0);
         std::cout << "Sent CAP LS response to client FD " << clientFd << std::endl;
@@ -254,7 +238,7 @@ void Server::handleClientMessage(int i) {
 
     buffer[ret] = '\0'; // Null-terminate the received message
     std::string message(buffer);
-    std::cout << "Received message (" << _clients[clientFd -4]->getUserName()<< "): " << message  << std::endl;
+    std::cout << "Received message (" << _clients[clientFd -4]->getUserName()<< ") " << message  << std::endl;
 
     std::istringstream stream(message);
     std::string line;
@@ -262,6 +246,9 @@ void Server::handleClientMessage(int i) {
         line.erase(line.find_last_not_of("\r\n") + 1);
         if (line.empty()) 
             continue;
+        std::string clientName = getClientByFd(clientFd);
+        Client *client = getClientByName(clientName);
+        std::cout << "fd : " << clientFd << "name : " << clientName << std::endl;
         if (_authenticatedClients.find(clientFd) == _authenticatedClients.end() || !_authenticatedClients[clientFd]) {
             if (line.find("PASS") == 0) {
                 handlePass(clientFd, line, i);
@@ -274,8 +261,9 @@ void Server::handleClientMessage(int i) {
         } else if (line.find("USER ") == 0) {
             handleUser(clientFd);
         } else if (line.find("JOIN") == 0) {
-            std::string clientName = getClientByFd(clientFd);
             processJoin(clientName, line);
+        }else if (line.find("PART") == 0) {
+            processPart(client, line);
         } else if (line.find("PING") == 0) {
             std::string pong = "PONG " + line.substr(5) + "\n";
             send(clientFd, pong.c_str(), pong.size(), 0);

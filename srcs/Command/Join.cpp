@@ -35,8 +35,6 @@ void	Server::cmdJoin(std::string &Channelname, std::string &key, Client *client)
 	
 	for(size_t i = 0; i < channels.size(); ++i){
 		std::string channelName = channels[i];
-		std::string keys = "";
-
 		if (i < keyLists.size())
 			key = keyLists[i];
 		handleSingleJoin(channelName, key, client);
@@ -76,7 +74,7 @@ void Server::handleSingleJoin(std::string &channelName, std::string &key, Client
         checkRestriction(*channel, client, key);
         client->setJoinedChannels(channel); // Add channel to client's joined list
     }
-    const std::vector<Channel*>& chans = client->getJoinedChannels();
+    const std::vector<Channel*> chans = client->getJoinedChannels();
     std::cout << "Client is now in " << chans.size() << " channel(s):\n";
     for (size_t i = 0; i < chans.size(); ++i) {
         std::cout << " - " << chans[i] << " (" << chans[i]->getName() << ")\n";
@@ -124,3 +122,20 @@ bool Server::channelExist(const std::string& name) {
     }
     return false;
 }
+
+ void Server::processJoin(std::string name, const std::string& message) {
+    size_t spacePos = message.find(' ', 5);
+    std::string channelName = message.substr(5, spacePos - 5);
+    channelName.erase(channelName.find_last_not_of("\r\n") + 1);
+    Client *client = getClientByName(name);
+    if (!client) {
+        std::cerr << "Error: Client '" << name << "' not found.\n";
+        return;
+    }
+    std::string password;
+    if (spacePos != std::string::npos) {
+        password = message.substr(spacePos + 1);
+        password.erase(password.find_last_not_of("\r\n") + 1);
+    }
+    cmdJoin(channelName, password, client);
+} 

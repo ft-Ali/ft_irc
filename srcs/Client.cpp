@@ -18,7 +18,10 @@ Client &Client::operator=(Client const &src){
 }
 
 void Client::removeJoinedChannel(std::vector<Channel*>& vec, Channel *channel){
-
+	if(vec.empty()){
+		std::cout << "Vec empty \n";
+		return ;
+	}
 	std::vector<Channel *>::iterator it = std::find(vec.begin(), vec.end(), channel);
 	if(it != vec.end())
 		vec.erase(it);
