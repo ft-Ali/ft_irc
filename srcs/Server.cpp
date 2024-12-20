@@ -269,6 +269,9 @@ void Server::handleClientMessage(int i) {
         }
         else if (line.find("CAP") == 0) {
             handleCap(clientFd, line);
+        }
+        else if (line.find("TOPIC") == 0) {
+            handleTopic(clientFd, line);
         } else if (line.find("NICK ") == 0) {
             handleNick(clientFd, line);
         } else if (line.find("USER ") == 0) {

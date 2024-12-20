@@ -163,9 +163,9 @@ bool Channel::checkWhiteList( Client *client){
 	return false;}
 bool Channel::checkOperatorList( Client *client){
 
-if(isOnList(_operatorList, client))
-		return true;
-	return false;
+	if(isOnList(_operatorList, client))
+			return true;
+		return false;
 }
 
 bool Channel::checkListMembers( Client *client){

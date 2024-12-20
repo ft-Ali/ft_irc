@@ -31,6 +31,5 @@ void Client::print() {
     << "Port: " << this->getPort() << std::endl 
     << "Nick: " << this->getNickName() << std::endl 
     << "isConnected: " << this->isConnected() << std::endl
-    << "isOperator: " << this->isOperator() << std::endl
     << "isRegistered: " << this->isRegistered() << std::endl << std::endl;
 }
