@@ -254,14 +254,14 @@ void Server::handleClientMessage(int i) {
 
         if (_authenticatedClients.find(clientFd) == _authenticatedClients.end() || !_authenticatedClients[clientFd]) {
             // Handling PASS command only if the client is not authenticated
-            if (line.find("PASS ") == 0) {
+            if (line.find("PASS") == 0) {
                 handlePass(clientFd, line, i);
                  // Stop further processing after handling PASS
             }
         }
 
         // Handle other commands only if authenticated
-        if (line.find("CAP") == 0) {
+        else if (line.find("CAP") == 0) {
             handleCap(clientFd, line);
         } else if (line.find("NICK ") == 0) {
             handleNick(clientFd, line);
