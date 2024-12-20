@@ -72,6 +72,7 @@ class Server {
 		Client *getClientByName(std::string &name);
 		std::string getClientByFd(const int &ClientFd);
 		void processPart(Client *client, std::string &command);
+		void handlePrivMsg(const std::string& line, int clientFd);
 		/***************************************************************************************/
 
 		// void listen();

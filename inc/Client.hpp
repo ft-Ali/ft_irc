@@ -19,6 +19,8 @@
 #include <csignal>
 #include <stdbool.h>
 #include "Channel.hpp"
+#pragma once
+class Channel;
 
 class Client {
     private:
@@ -65,4 +67,10 @@ class Client {
 	    //---------------//Methods
         void print();
         void removeJoinedChannel(std::vector<Channel*>& vec,  Channel *channel);
+        void sendMessage(const std::string &message) {
+        std::string formattedMessage = message + "\r\n"; // Ajoute CRLF (conforme au protocole IRC)
+        if (send(_fd, formattedMessage.c_str(), formattedMessage.size(), 0) < 0) {
+            std::cerr << "Error: Failed to send message to client.\n";
+        }
+        }
 };

@@ -189,3 +189,13 @@ void Channel::parseChannelName(){
 
 }
 
+void Channel::broadcastMessage(Client* sender, const std::string& message) {
+    for (size_t i = 0; i < _members.size(); ++i) {
+        // Check that the member is not the same as the sender
+        if (_members[i] != sender) {
+            // Correctly call the sendMessage method on a Client pointer
+            std::string senderNickName = sender->getNickName();
+            _members[i]->sendMessage(senderNickName + " " + message);
+        }
+    }
+}

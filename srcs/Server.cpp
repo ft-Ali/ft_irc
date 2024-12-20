@@ -18,6 +18,35 @@
     cmdJoin(channelName, password, client);
 } 
 
+void Server::handlePrivMsg(const std::string& line, int clientFd) {
+    std::string clientName = getClientByFd(clientFd);
+    size_t pos = line.find("PRIVMSG");
+    std::string message = line.substr(pos + 8);
+    size_t spacePos = message.find(' ');
+    std::string target = message.substr(0, spacePos);
+    std::string msg = message.substr(spacePos + 1);
+    msg.erase(msg.find_last_not_of("\r\n") + 1);
+    if (target[0] == '#') {
+        Channel* channel = getChannelByName(target);
+        if (channel) {
+            channel->broadcastMessage(_clients[clientFd -4], msg); // Broadcast the message to all channel members
+        } else {
+            std::string response = "ERROR: Channel " + target + " not found.\n";
+            send(clientFd, response.c_str(), response.size(), 0);
+        }
+    } else { // Private message to a user
+        Client* targetClient = getClientByName(target);
+        if (targetClient) {
+            std::string response = ":" + clientName + " PRIVMSG " + target + " :" + msg + "\n";
+            send(targetClient->getFd(), response.c_str(), response.size(), 0);
+        } else {
+            std::string response = "ERROR: User " + target + " not found.\n";
+            send(clientFd, response.c_str(), response.size(), 0);
+        }
+    }
+}
+
+
 // Function that handles the PASS command sent by the client.
 // This command is used to authenticate the client with a password.
 // - If the password is correct, the client is authenticated and can proceed with sending the NICK and USER commands.
@@ -276,6 +305,8 @@ void Server::handleClientMessage(int i) {
         } else if (line.find("JOIN") == 0) {
             std::string clientName = getClientByFd(clientFd);
             processJoin(clientName, line);
+        } else if (line.find("PRIVMSG") == 0) {
+            handlePrivMsg(line, clientFd);
         } else if (line.find("PING") == 0) {
             std::string pong = "PONG " + line.substr(5) + "\n";
             send(clientFd, pong.c_str(), pong.size(), 0);

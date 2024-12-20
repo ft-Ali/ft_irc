@@ -6,10 +6,11 @@
 #include <iterator>
 #include <algorithm>
 #include <iostream>
+
+
 #pragma once
-
+#include "Client.hpp"
 class Client;
-
 class Channel{
 	private:
 		std::string _name;
@@ -71,5 +72,6 @@ class Channel{
 	    void removeMode(char mode);
 
     	std::string getCreationTime() const;
+		void broadcastMessage(Client* sender, const std::string& message);
 };
 
