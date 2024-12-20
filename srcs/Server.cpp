@@ -252,18 +252,21 @@ void Server::handleClientMessage(int i) {
 
         std::cout << "Processing command: " << line << std::endl;
 
-        // Handle specific commands
-       if (_authenticatedClients.find(clientFd) == _authenticatedClients.end() || !_authenticatedClients[clientFd]) {
-        if (message.find("PASS ") == 0) {
-            // Handle the PASS command here
-            handlePass(clientFd, message, i);
+        if (_authenticatedClients.find(clientFd) == _authenticatedClients.end() || !_authenticatedClients[clientFd]) {
+            // Handling PASS command only if the client is not authenticated
+            if (line.find("PASS") == 0) {
+                handlePass(clientFd, line, i);
+                 // Stop further processing after handling PASS
+            }
         }
+
+        // Handle other commands only if authenticated
+        else if (line.find("CAP") == 0) {
+            handleCap(clientFd, line);
         } else if (line.find("NICK ") == 0) {
             handleNick(clientFd, line);
         } else if (line.find("USER ") == 0) {
             handleUser(clientFd);
-        } else if (line.find("CAP") == 0) {
-            handleCap(clientFd, line);
         } else if (line.find("JOIN") == 0) {
             std::string clientName = getClientByFd(clientFd);
             processJoin(clientName, line);
@@ -279,13 +282,10 @@ void Server::handleClientMessage(int i) {
             _clientRegistered.erase(clientFd);
             fds.erase(fds.begin() + i);
             return; // Exit after handling QUIT
-        // } else {
-        //     std::cout << "Unknown command: " << line << std::endl;
-        //     std::string response = "ERROR: Unknown command.\n";
-        //     send(clientFd, response.c_str(), response.size(), 0);
         }
     }
 }
+
 
 
 
