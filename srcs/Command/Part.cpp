@@ -1,10 +1,9 @@
-// #include "../../inc/Channel.hpp"
-// #include "../../inc/Server.hpp"
+#include "../../inc/Server.hpp"
 
 void    Server::cmdPart(const std::string &msg, std::vector<std::string> &args, Client *client){
-    // if(msg.size() < 2){
-    //     cmdPartAll(msg,client);
-    // }
+    if(msg.size() < 2){
+        cmdPartAll(client);
+    }
     std::string channelName = args[0];
 
 //     Channel *channel = getChannelByName(channelName);
@@ -54,21 +53,20 @@ void Server::cmdPartMulti(const std::string &message, std::vector<std::string> &
 }
 
 //attente du vector client
-// void Server::cmdPartAll(Client* client) {
-//     const std::vector<Channel*> channels = client->getChannels();
+void Server::cmdPartAll(Client* client) {
+    const std::vector<Channel*> channels = client->getJoinedChannels();
 
-//     if (channels.empty()) {
-//         std::cout << "Error: You are not in any channels.\n";
-//         return;
-//     }
-
-//     for (size_t i = 0; i < channels.size(); ++i) {
-//         Channel* channel = channels[i];
-//         channel->removeMember(client);
-//         // client->removeChannel(channel)
-//         std::cout << "Client has left channel " << channel->getName() << ".\n";
-//     }
-// }
+    if (channels.empty()) {
+        std::cout << "Error: You are not in any channels.\n";
+        return;
+    }
+    for (size_t i = 0; i < channels.size(); ++i) {
+        Channel* channel = channels[i];
+        channel->removeMember(client);
+        // client->removeChannel(channel)
+        std::cout << "Client has left channel " << channel->getName() << ".\n";
+    }
+}
 
 void Server::processPart(Client *client, std::string &command){
   

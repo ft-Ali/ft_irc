@@ -1,4 +1,4 @@
- #include "../inc/Channel.hpp"
+#include "../inc/Channel.hpp"
 
 Channel::Channel(Client *client,const std::string  &ChannelName) : _name(ChannelName), _topic(""), _key(""),
 _maxMembers(0) , _editTopic(false), _invitOnly(false) {
@@ -64,7 +64,7 @@ std::string Channel::getName(){return this->_name;}
 /*******************************ADD******************************/
 void Channel::addMember(std::vector<Client*> &vec, Client *client){
 
-	std::vector<Client *>::const_iterator it = std::find(vec.begin(), vec.end(),client);
+	std::vector<Client *>::const_iterator it = std::find(vec.begin(), vec.end(), client);
 	(void)it;
 	// if(it != vec.end()){
 	// 	std::cout << "Client already set \n";

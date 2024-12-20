@@ -7,7 +7,7 @@ std::vector<std::string> splitArg(const std::string &str, char delimiter){
 	std::vector<std::string> result;
 	std::string name;
 
-	for (size_t i = 0; i < str.size(); i++)
+	for(size_t i = 0; i < str.size(); i++)
 	{
 		if(str[i] == delimiter){
 			if(!name.empty()){
@@ -20,8 +20,7 @@ std::vector<std::string> splitArg(const std::string &str, char delimiter){
 	}
 	if(!name.empty())
 		result.push_back(name);
-
-return result;
+    return result;
 }
 
 void	Server::cmdJoin(std::string &Channelname, std::string &key, Client *client){
@@ -42,12 +41,12 @@ void	Server::cmdJoin(std::string &Channelname, std::string &key, Client *client)
 			key = keyLists[i];
 		handleSingleJoin(channelName, key, client);
 	}
-	}
+}
 
 void Server::handleSingleJoin(std::string &channelName, std::string &key, Client *client){
+    Channel *channel;
 
 	if(!channelExist(channelName)){
-		Channel *channel;
 		std::cout << "Channel '" << channelName << "' created and joined.\n";
 		if(key.empty())
 			channel = new Channel(client, channelName);
@@ -57,14 +56,17 @@ void Server::handleSingleJoin(std::string &channelName, std::string &key, Client
 		_channels.push_back(channel);
 		
 		channel->addListMember(client);
-
+        client->setOperator(true);
 	}
-	else{
+    else {
 		std::cout << "Channel " << channelName << " join.\n";
-		Channel *channel = getChannelByName(channelName);
-		// std::cout << "copy " << &channel << std::endl;
+		channel = getChannelByName(channelName);
 		checkRestriction(*channel, client, key);
+        return ;
 	}
+    client->setJoinedChannels(channel); //adding channel to joined channels in Client class
+    std::vector<Channel*> chans =  client->getJoinedChannels();
+    std::cout << chans[0] << std::endl;
 }
 
 

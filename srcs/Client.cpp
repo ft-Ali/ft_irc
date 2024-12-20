@@ -1,5 +1,7 @@
 #include "../inc/Client.hpp"
 
+
+
 Client::Client() {
     bzero(this, sizeof(Client));
     _fd = -1;
@@ -18,4 +20,9 @@ Client &Client::operator=(Client const &src){
 	return *this;
 }
 
-//-----------//Getters
+void Client::removeJoinedChannel(std::vector<Channel*>& vec, Channel *channel){
+
+	std::vector<Channel *>::iterator it = std::find(vec.begin(), vec.end(), channel);
+	if(it != vec.end())
+		vec.erase(it);
+}
