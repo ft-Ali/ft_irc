@@ -1,4 +1,5 @@
 #include "../inc/Channel.hpp"
+#include "../inc/Server.hpp"
 
 Channel::Channel(Client *client,const std::string  &ChannelName) : _name(ChannelName), _topic(""), _key(""),
 _maxMembers(0) , _editTopic(false), _invitOnly(false) {
@@ -192,11 +193,12 @@ void Channel::parseChannelName(){
 // Dans la classe Channel
 void Channel::broadcastMessage(Client* sender, const std::string& message) {
     for (size_t i = 0; i < _members.size(); ++i) {
-        // Vérifier que l'expéditeur n'est pas le même que le membre
         if (_members[i] != sender) {
-            // Envoyer le message au client
+			std::cout << "Client " << _members[i]->getNickName() << " sent a message to channel " << _name << ": " << message << std::endl;
             _members[i]->sendMessage(sender->getNickName() + ": " + message);
         }
     }
 }
+
+
 

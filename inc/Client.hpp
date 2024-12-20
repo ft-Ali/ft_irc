@@ -69,6 +69,7 @@ class Client {
         void removeJoinedChannel(std::vector<Channel*>& vec,  Channel *channel);
         void sendMessage(const std::string &message) {
         std::string formattedMessage = message + "\r\n"; // Ajoute CRLF (conforme au protocole IRC)
+        std::cout << "Sending message to client " << _fd << ": " << formattedMessage;
         if (send(_fd, formattedMessage.c_str(), formattedMessage.size(), 0) < 0) {
             std::cerr << "Error: Failed to send message to client.\n";
         }

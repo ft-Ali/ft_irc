@@ -21,23 +21,24 @@
 void Server::handlePrivMsg(const std::string& line, int clientFd) {
     std::string clientName = getClientByFd(clientFd);
     size_t pos = line.find("PRIVMSG");
-    std::string message = line.substr(pos + 8);  // Extraire le message après "PRIVMSG"
-    size_t spacePos = message.find(' ');  // Séparer le canal/utilisateur et le message
+    std::string message = line.substr(pos + 8);
+    size_t spacePos = message.find(' ');
     std::string target = message.substr(0, spacePos);
-    std::string msg = message.substr(spacePos + 1);  // Extraire le contenu du message
-    msg.erase(msg.find_last_not_of("\r\n") + 1);  // Enlever les éventuels retours à la ligne
-
-    if (target[0] == '#') {  // Message destiné à un canal
+    std::string msg = message.substr(spacePos + 1);
+    msg.erase(msg.find_last_not_of("\r\n") + 1);
+    if (target[0] == '#') {
+        std::cout << "Client " << clientName << " sent a message to channelll " << target << ": " << msg << std::endl;
         Channel* channel = getChannelByName(target);
+        std::string clientName = getClientByFd(clientFd);
+        Client *client = getClientByName(clientName);
         if (channel) {
             std::cout << "Client " << clientName << " sent a message to channel " << target << ": " << msg << std::endl;
-            // Broadcast the message to all channel members, excluding the sender
-            channel->broadcastMessage(_clients[clientFd - 4], msg);  // Utilisez le bon index pour accéder au client
+            channel->broadcastMessage(client, msg);
         } else {
             std::string response = "ERROR: Channel " + target + " not found.\n";
             send(clientFd, response.c_str(), response.size(), 0);
         }
-    } else {  // Message privé à un utilisateur
+    } else {
         Client* targetClient = getClientByName(target);
         if (targetClient) {
             std::string response = ":" + clientName + " PRIVMSG " + target + " :" + msg + "\n";
@@ -48,6 +49,8 @@ void Server::handlePrivMsg(const std::string& line, int clientFd) {
         }
     }
 }
+
+
 
 
 

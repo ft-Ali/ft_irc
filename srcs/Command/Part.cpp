@@ -94,7 +94,7 @@ void Server::processPart(Client *client, std::string &command){
 Client *Server::getClientByName(std::string &name){
 	std::cout << "name send : " << name << std::endl;
 	for (size_t i = 0; i < _clients.size(); ++i) {
-        std::cout << "name : " << _clients[i]->getNickName() << "username : " << _clients[i]->getUserName() << std::endl;
+        std::cout << "name : " << _clients[i]->getNickName() << " username : " << _clients[i]->getUserName() << std::endl;
         if (_clients[i]->getNickName() == name)
             return _clients[i];
     }

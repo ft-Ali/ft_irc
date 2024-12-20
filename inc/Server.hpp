@@ -74,7 +74,6 @@ class Server {
 		void processPart(Client *client, std::string &command);
 		void handlePrivMsg(const std::string& line, int clientFd);
 		/***************************************************************************************/
-
 		// void listen();
 		// void accept();
 		// void read();

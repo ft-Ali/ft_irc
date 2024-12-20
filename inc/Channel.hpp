@@ -32,6 +32,7 @@ class Channel{
 		void parseChannelName();
 		std::string getName();
 		bool isOnList(const std::vector<Client*>& vec, Client *client);
+		
 	 size_t size() const {
         return _members.size(); // Retourne le nombre de membres
     }
