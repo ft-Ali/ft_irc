@@ -239,7 +239,7 @@ void Server::handleClientMessage(int i) {
 
     buffer[ret] = '\0'; // Null-terminate the received message
     std::string message(buffer);
-    std::cout << "Received message (" << _clients[clientFd -4]->getUserName()<< ") " << message  << std::endl;
+    std::cout << "Received message (" << _clients[clientFd -4]->getUserName()<< ")" << message  << std::endl;
 
     std::istringstream stream(message);
     std::string line;
@@ -249,7 +249,6 @@ void Server::handleClientMessage(int i) {
             continue;
         std::string clientName = getClientByFd(clientFd);
         Client *client = getClientByName(clientName);
-        std::cout << "fd : " << clientFd << "name : " << clientName << std::endl;
         if (_authenticatedClients.find(clientFd) == _authenticatedClients.end() || !_authenticatedClients[clientFd]) {
             if (line.find("PASS") == 0) {
                 handlePass(clientFd, line, i);

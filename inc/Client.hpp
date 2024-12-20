@@ -64,5 +64,5 @@ class Client {
 
 	    //---------------//Methods
         void print();
-        void removeJoinedChannel(std::vector<Channel*>& vec,  Channel *channel);
+        void removeJoinedChannel(Channel *channel);
 };

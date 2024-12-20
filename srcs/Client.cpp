@@ -17,14 +17,18 @@ Client &Client::operator=(Client const &src){
 	return *this;
 }
 
-void Client::removeJoinedChannel(std::vector<Channel*>& vec, Channel *channel){
-	if(vec.empty()){
-		std::cout << "Vec empty \n";
+void Client::removeJoinedChannel(Channel *channel){
+	if(!channel){
+		std::cout << "channel empty \n";
 		return ;
 	}
-	std::vector<Channel *>::iterator it = std::find(vec.begin(), vec.end(), channel);
-	if(it != vec.end())
-		vec.erase(it);
+	std::vector<Channel*>::iterator it = std::find(_joinedChannels.begin(), _joinedChannels.end(), channel);
+    if (it != _joinedChannels.end()) {
+        _joinedChannels.erase(it);
+        std::cout << "Channel removed from client's joined channels.\n";
+    } else {
+        std::cerr << "Error: Channel not found in client's joined channels.\n";
+    }
 }
 
 void Client::print() {

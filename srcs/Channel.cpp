@@ -104,9 +104,13 @@ void Channel::addListMember(Client *client){
 /*******************************REMOVE***************************/
 void Channel::removeClientList(std::vector<Client*>& vec, Client *client){
 
-	std::vector<Client *>::iterator it = std::find(vec.begin(), vec.end(), client);
-	if(it != vec.end())
-		vec.erase(it);
+	std::vector<Client*>::iterator it = std::find(vec.begin(), vec.end(), client);
+    if (it != vec.end()) {
+        vec.erase(it);
+        std::cout << "Client removed from channel.\n";
+    } else {
+        std::cerr << "Error: Client not found in channel.\n";
+    }
 }
 
 void Channel::removeMember( Client *client){
@@ -168,7 +172,7 @@ if(isOnList(_operatorList, client))
 	return false;
 }
 
-bool Channel::checkListMembers( Client *client){
+bool Channel::checkListMembers(Client *client){
 	if(isOnList(_members, client))
 		return true;
 	return false;
