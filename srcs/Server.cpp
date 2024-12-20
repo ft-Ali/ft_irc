@@ -6,6 +6,10 @@
     std::string channelName = message.substr(5, spacePos - 5);
     channelName.erase(channelName.find_last_not_of("\r\n") + 1);
     Client *client = getClientByName(name);
+      if (!client) {
+        std::cerr << "Error: Client '" << name << "' not found.\n";
+        return;
+    }
     std::string password;
     if (spacePos != std::string::npos) {
         password = message.substr(spacePos + 1);
@@ -25,14 +29,10 @@
 // - i: The index of the client in the fds list (used to remove the client from fds when disconnecting).
 
 void Server::handlePass(int clientFd, const std::string& message, size_t i) {
-    std::cout << "Client FD " << clientFd << " sent a PASS command." << std::endl;
-    std::cout << "Real password: " << _password << std::endl;
-    std::string password = message.substr(5);
 
+    std::string password = message.substr(5);
     password.erase(password.find_last_not_of("\r\n") + 1); // Supprime '\r' et '\n' en fin de chaîne
     password.erase(password.find_last_not_of(" \t") + 1);  // Supprime les espaces et tabulations
-
-    std::cout << "Password after cleanup: '" << password << "'\n";
 
     if (password.empty()) {
         std::string response = "ERROR: Password cannot be empty. Disconnecting.\n";
@@ -48,7 +48,7 @@ void Server::handlePass(int clientFd, const std::string& message, size_t i) {
         _authenticatedClients[clientFd] = true;
         std::string response = "Welcome! Use /quote USER to continue.\n";
         send(clientFd, response.c_str(), response.size(), 0);
-        std::cout << "Client FD " << clientFd << " authenticated successfully." << std::endl;
+        std::cout << "Client FD " << _clients[clientFd -4]->getUserName() << " authenticated successfully." << std::endl;
     } else {
         std::string response = "ERROR: Authentication failed. Disconnecting.\n";
         send(clientFd, response.c_str(), response.size(), 0);
@@ -57,7 +57,7 @@ void Server::handlePass(int clientFd, const std::string& message, size_t i) {
         _clientNicks.erase(clientFd);
         _clientRegistered.erase(clientFd);
         fds.erase(fds.begin() + i);
-        std::cout << "Client FD " << clientFd << " failed authentication." << std::endl;
+        std::cout << "Client FD " << _clients[clientFd -4]->getUserName() << " failed authentication." << std::endl;
     }
 }
 
@@ -82,8 +82,6 @@ void Server::handleNick(int clientFd, const std::string& message) {
         send(clientFd, response.c_str(), response.size(), 0);
         return;
     }
-std::cout << "nick: '" << newNickname<< "'n"<<std::endl;
-
     // Check if the nickname is already in use
     std::string baseNickname = newNickname;
     int suffix = 1;
@@ -97,7 +95,7 @@ std::cout << "nick: '" << newNickname<< "'n"<<std::endl;
     }
     std::string oldNickname = _clientNicks[clientFd];
     _clientNicks[clientFd] = newNickname;
-
+    _clients[clientFd -4]->setNickname(newNickname);
     std::string response = ":" + oldNickname + " NICK " + newNickname + "\n";
     send(clientFd, response.c_str(), response.size(), 0);
 
@@ -124,8 +122,6 @@ void Server::handleUser(int clientFd) {
     }
     // Automatically use system's username or predefined values for username
     const char* systemUser = getenv("USER");
-std::cout << "user: '" << systemUser<< "'u"<<std::endl;
-
     std::string username = systemUser ? systemUser : _clientNicks[clientFd]; // Set default if not available
     _clientUsers[clientFd] = username;
     _clientRegistered[clientFd] = true;
@@ -141,34 +137,53 @@ std::cout << "user: '" << systemUser<< "'u"<<std::endl;
 Server* Server::instance = NULL; // initialize instance to NULL, (instance = global that point to actual server [ON])
 
 void Server::closeServer() {
-	if (_serSocketFd != -1) {
-        close(_serSocketFd);
-        std::cout << "Server socket closed." << std::endl;
-    }
-    for (size_t i = 0; i < fds.size(); ++i) {
-        close(fds[i].fd);
-        std::cout << "Client FD " << fds[i].fd << " closed." << std::endl;
-    }
-	
-	_authenticatedClients.clear();
-    _clientRegistered.clear();
-	fds.clear();
-	std::vector<struct pollfd>().swap(fds); // free memory of vector (clients)
+if (_serSocketFd != -1) {
+    close(_serSocketFd);
+    std::cout << "Server socket closed." << std::endl;
 }
 
+// Fermeture des descripteurs clients
+for (size_t i = 0; i < fds.size(); ++i) {
+    close(fds[i].fd);
+    std::cout << "Client FD " << fds[i].fd << " closed." << std::endl;
+}
+
+// Libération des objets Client*
+std::cout << "CLient sizeeeee: " << _clients.size() << std::endl;
+for (size_t i = 0; i < _clients.size(); ++i) {
+    delete _clients[i];
+}
+_clients.clear();
+
+// Libération des objets Channel*
+for (size_t i = 0; i < _channels.size(); ++i) {
+    delete _channels[i];
+}
+_channels.clear();
+
+// Nettoyage des autres structures
+_authenticatedClients.clear();
+_clientRegistered.clear();
+_clientUsers.clear();
+_clientNicks.clear();
+
+// Libération mémoire du vecteur pollfd
+std::vector<struct pollfd>().swap(fds);
+
+}
 
 void Server::signalHandler(int signal) {
     if(signal == SIGQUIT) {
 		std::cout << std::endl;
 		std::cout << "SIGQUIT received. Closing server." << std::endl;
 		instance->closeServer();
-		exit(0);
+		// exit(0);
 	}
 	else if(signal == SIGINT) {
 		std::cout << std::endl;
 		std::cout << "SIGINT received. Closing server." << std::endl;
 		instance->closeServer();
-		exit(0);
+		// exit(0);
 	}
 }
 
@@ -239,28 +254,19 @@ void Server::handleClientMessage(int i) {
 
     buffer[ret] = '\0'; // Null-terminate the received message
     std::string message(buffer);
-    std::cout << "Received message (" << clientFd << "): " << message  << std::endl;
+    std::cout << "Received message (" << _clients[clientFd -4]->getUserName()<< "): " << message  << std::endl;
 
-    // Split the message into lines in case multiple commands are received
     std::istringstream stream(message);
     std::string line;
     while (std::getline(stream, line)) {
-        // Clean up the line (remove \r or extra spaces)
         line.erase(line.find_last_not_of("\r\n") + 1);
-
-        if (line.empty()) continue; // Skip empty lines
-
-        std::cout << "Processing command: " << line << std::endl;
-
+        if (line.empty()) 
+            continue;
         if (_authenticatedClients.find(clientFd) == _authenticatedClients.end() || !_authenticatedClients[clientFd]) {
-            // Handling PASS command only if the client is not authenticated
             if (line.find("PASS") == 0) {
                 handlePass(clientFd, line, i);
-                 // Stop further processing after handling PASS
             }
         }
-
-        // Handle other commands only if authenticated
         else if (line.find("CAP") == 0) {
             handleCap(clientFd, line);
         } else if (line.find("NICK ") == 0) {
@@ -281,14 +287,10 @@ void Server::handleClientMessage(int i) {
             _clientNicks.erase(clientFd);
             _clientRegistered.erase(clientFd);
             fds.erase(fds.begin() + i);
-            return; // Exit after handling QUIT
+            return; 
         }
     }
 }
-
-
-
-
 
 void Server::handleNewConnection() {
      struct sockaddr_in clientAddr;
@@ -306,22 +308,13 @@ void Server::handleNewConnection() {
     fds.push_back(client);
     _clientNicks[clientFd] = "";
     _clientUsers[clientFd] = "";
-    
-
-    // Get the system user name to use as a default nickname
     const char* systemUser = getenv("USER");
-    if (!systemUser) {
-        systemUser = getenv("LOGNAME"); // Fallback si USER n'est pas défini
-    }
-
-    // use the system USER if available, otherwise use a default nickname
+    if (!systemUser) 
+        systemUser = getenv("LOGNAME");
     std::string nickname = systemUser ? systemUser : "anonymous_user";
-
-    
-    // Assign the nickname to the client
     _clientNicks[clientFd] = nickname;
-    // Adding all client infos to _client vector in Server
-    _clients.push_back(new Client(clientFd, clientPort, clientIp, "", nickname));
+    _clients.push_back(new Client(clientFd, clientPort, clientIp, systemUser, nickname));
+    // _clients[clientFd -4]->print();
 
 }
 
@@ -370,8 +363,6 @@ void Server::serverInit() {
 	communication.events = POLLIN;
 	communication.revents = 0;
 	fds.push_back(communication);
-
-
 	std::cout << "Server started on port " << _port << std::endl;
 }
 

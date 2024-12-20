@@ -43,31 +43,46 @@ void	Server::cmdJoin(std::string &Channelname, std::string &key, Client *client)
 	}
 }
 
-void Server::handleSingleJoin(std::string &channelName, std::string &key, Client *client){
-    Channel *channel;
+void Server::handleSingleJoin(std::string &channelName, std::string &key, Client *client) {
+    if (!client) {
+        std::cerr << "Error: Null client passed to handleSingleJoin.\n";
+        return;
+    }
+    Channel* channel = NULL;
 
-	if(!channelExist(channelName)){
-		std::cout << "Channel '" << channelName << "' created and joined.\n";
-		if(key.empty())
-			channel = new Channel(client, channelName);
-		else
-			channel = new Channel(client, channelName, key);
-		std::cout << &channel << std::endl;
-		_channels.push_back(channel);
-		
-		channel->addListMember(client);
-        client->setOperator(true);
-	}
-    else {
-		std::cout << "Channel " << channelName << " join.\n";
-		channel = getChannelByName(channelName);
-		checkRestriction(*channel, client, key);
-        return ;
-	}
-    client->setJoinedChannels(channel); //adding channel to joined channels in Client class
-    std::vector<Channel*> chans =  client->getJoinedChannels();
-    std::cout << chans[0] << std::endl;
+    if (!channelExist(channelName)) {
+        std::cout << "Channel '" << channelName << "' created and joined.\n";
+        if (key.empty())
+            channel = new Channel(client, channelName);
+        else
+            channel = new Channel(client, channelName, key);
+
+        if (!channel) {
+            std::cerr << "Error: Failed to create channel.\n";
+            return;
+        }
+
+        _channels.push_back(channel); // Add channel to server list
+        channel->addListMember(client); // Add client to channel's member list
+        client->setJoinedChannels(channel); // Add channel to client's joined list
+    } else {
+        std::cout << "Channel " << channelName << " join.\n";
+        channel = getChannelByName(channelName);
+
+        if (!channel) {
+            std::cerr << "Error: Failed to retrieve existing channel.\n";
+            return;
+        }
+        checkRestriction(*channel, client, key);
+        client->setJoinedChannels(channel); // Add channel to client's joined list
+    }
+    const std::vector<Channel*>& chans = client->getJoinedChannels();
+    std::cout << "Client is now in " << chans.size() << " channel(s):\n";
+    for (size_t i = 0; i < chans.size(); ++i) {
+        std::cout << " - " << chans[i] << " (" << chans[i]->getName() << ")\n";
+    }
 }
+
 
 
 void	Server::checkRestriction(Channel &channel, Client *client, std::string &key){
@@ -91,9 +106,6 @@ void	Server::checkRestriction(Channel &channel, Client *client, std::string &key
     //     return;
     // }
 	channel.addListMember(client);
-	for(size_t i = 0; i < 1; ++i){
-	std::cout <<client->getName() << " Joined " << channel.getName() << " successfully.\n";
-	}
 }
 
 Channel *Server::getChannelByName(std::string &name){

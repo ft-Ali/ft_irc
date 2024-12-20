@@ -1,4 +1,5 @@
 #include "../../inc/Server.hpp"
+#include "../../inc/Channel.hpp"
 
 void    Server::cmdPart(const std::string &msg, std::vector<std::string> &args, Client *client){
     if(msg.size() < 2){
@@ -6,11 +7,11 @@ void    Server::cmdPart(const std::string &msg, std::vector<std::string> &args, 
     }
     std::string channelName = args[0];
 
-//     Channel *channel = getChannelByName(channelName);
-//     if(!channel){
-//         std::cout << channelName << "does not exist\n";
-//         return ;
-//     }
+    Channel *channel = getChannelByName(channelName);
+    if(!channel){
+        std::cout << channelName << "does not exist\n";
+        return ;
+    }
 
     if(!channel->checkListMembers(client)){
         std::cout <<  "You are not in "<<channelName << std::endl;
@@ -91,9 +92,10 @@ void Server::processPart(Client *client, std::string &command){
 }
 
 Client *Server::getClientByName(std::string &name){
-	
+	std::cout << "name send : " << name << std::endl;
 	for (size_t i = 0; i < _clients.size(); ++i) {
-        if (_clients[i]->getName() == name)
+        std::cout << "name : " << _clients[i]->getNickName() << "username : " << _clients[i]->getUserName() << std::endl;
+        if (_clients[i]->getNickName() == name)
             return _clients[i];
     }
 	return NULL;

@@ -27,7 +27,7 @@ class Channel{
 	public:
 		Channel(Client *client, std::string const &ChannelName, const std::string &key);
 		Channel(Client *client, std::string const &ChannelName);
-		
+		~Channel();
 		void parseChannelName();
 		std::string getName();
 		bool isOnList(const std::vector<Client*>& vec, Client *client);

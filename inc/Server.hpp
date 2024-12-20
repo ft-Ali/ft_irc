@@ -45,6 +45,7 @@ class Server {
 		};
 		~Server() {
 			closeServer();
+		 
 			instance = NULL;
 			
 		};
@@ -52,7 +53,6 @@ class Server {
 		void serverLoop();
 		void handleNewConnection();
 		void handleClientMessage(int i);
-		bool authenticateClient(int clientFd, const std::string& message, size_t i);
 		static void signalHandler(int signal);
 		void handleUser(int clientFd);
 		void handleNick(int clientFd, const std::string& message);

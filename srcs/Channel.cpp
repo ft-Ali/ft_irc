@@ -18,6 +18,7 @@ _maxMembers(0) , _editTopic(false), _invitOnly(false) {
     _creationTime = time(NULL);
 };
 
+Channel::~Channel(){}
 
 /**************************SETTERS*******************************/
 
@@ -64,11 +65,10 @@ std::string Channel::getName(){return this->_name;}
 /*******************************ADD******************************/
 void Channel::addMember(std::vector<Client*> &vec, Client *client){
 
-	std::vector<Client *>::const_iterator it = std::find(vec.begin(), vec.end(), client);
-	(void)it;
+	// std::vector<Client *>::const_iterator it = std::find(vec.begin(), vec.end(), client);
 	// if(it != vec.end()){
 	// 	std::cout << "Client already set \n";
-	// 	std::cout << client->getName() << std::endl;
+	// 	std::cout << client->getNickname() << std::endl;
 	// }
 	// else
 	// for(std::vector<Client*>::iterator it = _members.begin(); it != _members.end(); ++it){
