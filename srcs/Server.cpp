@@ -82,16 +82,17 @@ void Server::handleNick(int clientFd, const std::string& message) {
         send(clientFd, response.c_str(), response.size(), 0);
         return;
     }
-    // Check if the nickname is already in use
+
+  
     std::string baseNickname = newNickname;
-    int suffix = 1;
+    _suffix = 0;
     for (std::map<int, std::string>::iterator it = _clientNicks.begin(); it != _clientNicks.end(); ++it) {
-        if (it->second == newNickname) {
+        if (it->second == newNickname && _suffix > 0) {
             std::ostringstream oss;
-            oss << baseNickname << suffix;
+            oss << baseNickname <<"("<< _suffix << ")";
             newNickname = oss.str();
-            suffix++;
         }
+        _suffix++;
     }
     std::string oldNickname = _clientNicks[clientFd];
     _clientNicks[clientFd] = newNickname;
