@@ -23,32 +23,39 @@ void Server::handlePrivMsg(const std::string& line, int clientFd) {
     size_t pos = line.find("PRIVMSG");
     std::string message = line.substr(pos + 8);
     size_t spacePos = message.find(' ');
+
+    if (spacePos == std::string::npos) {
+        std::string response = "ERROR: Invalid PRIVMSG format.\n";
+        send(clientFd, response.c_str(), response.size(), 0);
+        return;
+    }
+
     std::string target = message.substr(0, spacePos);
     std::string msg = message.substr(spacePos + 1);
     msg.erase(msg.find_last_not_of("\r\n") + 1);
-    if (target[0] == '#') {
-        std::cout << "Client " << clientName << " sent a message to channelll " << target << ": " << msg << std::endl;
+
+    if (target[0] == '#') { // Message à un channel
         Channel* channel = getChannelByName(target);
-        std::string clientName = getClientByFd(clientFd);
-        Client *client = getClientByName(clientName);
+        Client* client = getClientByName(clientName);
         if (channel) {
-            std::cout << "Client " << clientName << " sent a message to channel " << target << ": " << msg << std::endl;
+            std::cout << "Client " << clientName << " envoie un message au channel " << target << ": " << msg << std::endl;
             channel->broadcastMessage(client, msg);
         } else {
-            std::string response = "ERROR: Channel " + target + " not found.\n";
+            std::string response = ":server_name 403 " + clientName + " " + target + " :No such channel\r\n";
             send(clientFd, response.c_str(), response.size(), 0);
         }
-    } else {
+    } else { // Message à un utilisateur
         Client* targetClient = getClientByName(target);
         if (targetClient) {
-            std::string response = ":" + clientName + " PRIVMSG " + target + " :" + msg + "\n";
+            std::string response = ":" + clientName + " PRIVMSG " + target + " :" + msg + "\r\n";
             send(targetClient->getFd(), response.c_str(), response.size(), 0);
         } else {
-            std::string response = "ERROR: User " + target + " not found.\n";
+            std::string response = ":server_name 401 " + clientName + " " + target + " :No such nick/channel\r\n";
             send(clientFd, response.c_str(), response.size(), 0);
         }
     }
 }
+
 
 
 
