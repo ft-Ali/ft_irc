@@ -16,10 +16,10 @@ void Server::handlePrivMsg(const std::string& line, int clientFd) {
     std::string msg = message.substr(spacePos + 1);  // Le message proprement dit
     msg.erase(msg.find_last_not_of("\r\n") + 1);  // Nettoie les caractères de fin de ligne
 
-    if (target[0] == '#') {  // Si le message est destiné à un canal
+    if (target[0] == '#' ) {  // Si le message est destiné à un canal
         Channel* channel = getChannelByName(target);  // Récupère le canal par son nom
         Client* client = getClientByName(clientName);  // Récupère le client qui envoie le message
-        if (channel) {
+        if (channel && channel->checkListMembers(client)) {
             std::cout << "Client " << clientName << " envoie un message au channel " << target << ": " << msg << std::endl;
             channel->broadcastMessage(client, msg);  // Diffuse le message à tous les membres du canal
         } else {

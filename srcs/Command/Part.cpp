@@ -25,59 +25,42 @@ void Server::processPart(Client* client, std::string& command) {
     
 }
 
-void Server::cmdPart(const std::string& msg, std::vector<std::string>& channelNames, Client* client) {
+void Server::cmdPart(std::string& msg, std::vector<std::string>& channelNames, Client* client) {
     std::vector<Channel*> clientChannels = client->getJoinedChannels();
-    
+
     for (std::vector<std::string>::iterator it = channelNames.begin(); it != channelNames.end(); ++it) {
+
         Channel* channel = getChannelByName(*it);
-        
         if (!channel) {
-            std::cout << "Error: Channel " << *it << " does not exist.\n";
+            std::cout << "Erreur : le canal " << channel->getName() << " n'existe pas.\n";
             continue;
         }
         if (!channel->checkListMembers(client)) {
-            std::cout << "Error: Client is not in channel " << *it << ".\n";
+            std::cout << "Erreur : le client n'est pas dans le canal " << channel->getName() << ".\n";
             continue;
         }
-         channel->leaveChannel(client);
-        client->removeJoinedChannel(channel);
-        // Vérifie si le client est opérateur et le retire si c'est le cas
+
         if (channel->checkOperatorList(client)) {
             channel->removeOperator(client);
-
-            // Vérifie si le canal a des membres restants
-            std::vector<Client*> members = channel->getMembers();
-            if (!members.empty()) {
-                // Le premier client de la liste devient le nouvel opérateur
-                Client* newOperator = members.front();  // Tu peux remplacer `front()` par une logique spécifique si nécessaire.
-                channel->setOperator(newOperator);  // Ajoute le nouvel opérateur
-                std::cout << "New operator for channel " << channel->getName() << " is: " << newOperator->getNickName() << std::endl;
-            } else {
-                std::cout << "Channel " << channel->getName() << " has no members left, so no new operator.\n";
-            }
         }
-        
-       
+        channel->leaveChannel(client);
+        client->removeJoinedChannel(channel);
 
-        const std::vector<Channel*>& updatedChannels = client->getJoinedChannels();
-        bool removed = true;
-        for (std::vector<Channel*>::const_iterator chIt = updatedChannels.begin(); chIt != updatedChannels.end(); ++chIt) {
-            if (*chIt == channel) {
-                removed = false;
-                break;
-            }
-        }
-        if (removed) {
-            std::cout << "Client successfully left channel " << *it << " with message: " << msg << ".\n";
-            std::cout << "Checking size of channel " << channel->getName() << ": " << channel->size() << std::endl;
-        } else 
-            std::cerr << "Error: Channel " << *it << " still appears in client's joined channels.\n";
-        // sendCloseWindowCommand(client->getFd(), channel);  
+        // Vérifier si le canal est vide
         if (channel->size() == 0) {
-            removeEmptyChannel(channel);  // Supprimer le canal si vide
+            removeEmptyChannel(channel);
         }
+
+        // Message de confirmation
+        std::string partMessage = "Client " + client->getNickName() + " a quitté le canal " + channel->getName() + " avec le message : " + msg + "\n";
+        std::cout << partMessage;
+// std::this_thread::sleep_for(std::chrono::seconds(1)); // Attente d'une 
+std::string response = ":server_name NOTICE " + client->getNickName() + " :/window close\r\n";
+send(client->getFd(), response.c_str(), response.size(), 0);
+
     }
 }
+
 
 
 // send msg to Server /widow prev pour return a la page precedente
@@ -107,13 +90,10 @@ void Server::sendCloseWindowCommand(int clientFd, Channel *channel) {
         std::cerr << "Erreur : Impossible de trouver le client pour FD " << clientFd << ".\n";
         return;
     }
-(void) channel;
-    std::string response = "fd\r\n";
-    if (send(clientFd, response.c_str(), response.size(), 0) < 0) {
-        std::cerr << "Erreur : échec de l'envoi de la commande 'win close' au client.\n";
-    } else {
-        std::cout << "Commande 'win close' envoyée au client " << clientNickname << ".\n";
-    }
-    std::string flush = "fdfd\r\n";
+    (void)channel;
+std::string response = ":server_name NOTICE " + clientNickname + " :/window close\r\n";
+send(clientFd, response.c_str(), response.size(), 0);
+
+    std::string flush = "\r\n";
     send(clientFd, flush.c_str(), flush.size(), 0);
 }
