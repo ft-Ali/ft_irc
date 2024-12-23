@@ -23,12 +23,9 @@ void Client::removeJoinedChannel(Channel *channel){
 		return ;
 	}
 	std::vector<Channel*>::iterator it = std::find(_joinedChannels.begin(), _joinedChannels.end(), channel);
-    if (it != _joinedChannels.end()) {
+    if (it != _joinedChannels.end()) 
         _joinedChannels.erase(it);
-        std::cout << "Channel removed from client's joined channels.\n";
-    } else {
-        std::cerr << "Error: Channel not found in client's joined channels.\n";
-    }
+  
 }
 
 void Client::print() {

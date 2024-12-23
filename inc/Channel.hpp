@@ -19,6 +19,7 @@ class Channel{
 		size_t _maxMembers;
 		bool _editTopic;
 		bool _invitOnly;
+		bool _isOperator;
 		std::vector<Client*> _members;
     	std::vector<Client*> _whiteList;
     	std::vector<Client*> _banList;
@@ -45,7 +46,7 @@ class Channel{
 		void setKey(std::string &key);
 		void undoKey();
 
-		void setOperator(const std::vector<Client*>& vec, Client *client);//-o +o
+		void setOperator( Client *client);//-o +o
 		void removeOperator(Client* client);
 		bool checkOperatorList(Client *client);
 		
@@ -69,7 +70,7 @@ class Channel{
 		std::string getModes() const;
     	void addMode(char mode);
 	    void removeMode(char mode);
-
+		std::vector<Client*> getMembers(){return this->_members;}
     	std::string getCreationTime() const;
 };
 

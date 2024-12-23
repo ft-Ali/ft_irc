@@ -1,7 +1,7 @@
 #include "../inc/Channel.hpp"
 
 Channel::Channel(Client *client,const std::string  &ChannelName) : _name(ChannelName), _topic(""), _key(""),
-_maxMembers(0) , _editTopic(false), _invitOnly(false) {
+_maxMembers(0) , _editTopic(false), _invitOnly(false), _isOperator(false) {
 
     parseChannelName();
     _members.push_back(client);
@@ -10,7 +10,7 @@ _maxMembers(0) , _editTopic(false), _invitOnly(false) {
 };
 
 Channel::Channel(Client *client, const std::string  &ChannelName, const std::string &key) : _name(ChannelName), _topic(""), _key(key),
-_maxMembers(0) , _editTopic(false), _invitOnly(false) {
+_maxMembers(0) , _editTopic(false), _invitOnly(false), _isOperator(false) {
 
     parseChannelName();
     _members.push_back(client);
@@ -101,16 +101,16 @@ void Channel::addListMember(Client *client){
 	addMember(_members, client);
 }
 
+void Channel::setOperator(Client *client){
+	addMember(_operatorList, client);
+}
 /*******************************REMOVE***************************/
 void Channel::removeClientList(std::vector<Client*>& vec, Client *client){
 
 	std::vector<Client*>::iterator it = std::find(vec.begin(), vec.end(), client);
-    if (it != vec.end()) {
+    if (it != vec.end())
         vec.erase(it);
-        std::cout << "Client removed from channel.\n";
-    } else {
-        std::cerr << "Error: Client not found in channel.\n";
-    }
+
 }
 
 void Channel::removeMember( Client *client){
@@ -165,7 +165,7 @@ bool Channel::checkWhiteList( Client *client){
 	if(isOnList(_whiteList, client))
 		return true;
 	return false;}
-bool Channel::checkOperatorList( Client *client){
+bool Channel::checkOperatorList(Client *client){
 
 if(isOnList(_operatorList, client))
 		return true;

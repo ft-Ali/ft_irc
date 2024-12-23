@@ -72,6 +72,8 @@ class Server {
 		Client *getClientByName(std::string &name);
 		std::string getClientByFd(const int &ClientFd);
 		void processPart(Client *client, std::string &command);
+		void removeEmptyChannel(Channel* channel);
+		void sendCommandToIrssi(const std::string& command);
 		/***************************************************************************************/
 
 		// void listen();
@@ -81,3 +83,4 @@ class Server {
 		// void close();
 };
 std::vector<std::string> splitArg(const std::string &str, char delimiter);
+void    sendMessage(int fd, const std::string &msg);

@@ -61,7 +61,8 @@ void Server::handleSingleJoin(std::string &channelName, std::string &key, Client
         }
 
         _channels.push_back(channel); // Add channel to server list
-        channel->addListMember(client); // Add client to channel's member list
+        // channel->addListMember(client); // Add client to channel's member list
+        std::cout << "OPERQTOR \n";
         client->setJoinedChannels(channel); // Add channel to client's joined list
     } else {
         std::cout << "Channel " << channelName << " join.\n";
@@ -103,6 +104,8 @@ void	Server::checkRestriction(Channel &channel, Client *client, std::string &key
     //     std::cout << "Cannot join " << channel.getName() << ", channel is full.\n";
     //     return;
     // }
+        std::cout << "CLIENT \n";
+
 	channel.addListMember(client);
 }
 

@@ -266,6 +266,10 @@ void Server::handleClientMessage(int i) {
             processPart(client, line);
         } else if (line.find("PING") == 0) {
             std::string pong = "PONG " + line.substr(5) + "\n";
+            int j=0;
+              for (std::vector<Channel*>::iterator it = _channels.begin(); it != _channels.end(); ++it) {
+                std::cout << "channel left : " << _channels[j]->getName() << std::endl;   
+                j++;          }
             send(clientFd, pong.c_str(), pong.size(), 0);
         } else if (line.find("QUIT") == 0) {
             std::string response = "Goodbye!\n";
