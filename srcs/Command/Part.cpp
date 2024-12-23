@@ -28,7 +28,6 @@ void Server::processPart(Client* client, std::string& command) {
 void Server::cmdPart(const std::string& msg, std::vector<std::string>& channelNames, Client* client) {
     std::vector<Channel*> clientChannels = client->getJoinedChannels();
     
-    // Parcours des canaux spécifiés dans la commande PART
     for (std::vector<std::string>::iterator it = channelNames.begin(); it != channelNames.end(); ++it) {
         Channel* channel = getChannelByName(*it);
         
@@ -40,7 +39,8 @@ void Server::cmdPart(const std::string& msg, std::vector<std::string>& channelNa
             std::cout << "Error: Client is not in channel " << *it << ".\n";
             continue;
         }
-        
+         channel->leaveChannel(client);
+        client->removeJoinedChannel(channel);
         // Vérifie si le client est opérateur et le retire si c'est le cas
         if (channel->checkOperatorList(client)) {
             channel->removeOperator(client);
@@ -57,8 +57,7 @@ void Server::cmdPart(const std::string& msg, std::vector<std::string>& channelNa
             }
         }
         
-        channel->leaveChannel(client);
-        client->removeJoinedChannel(channel);
+       
 
         const std::vector<Channel*>& updatedChannels = client->getJoinedChannels();
         bool removed = true;
@@ -73,11 +72,11 @@ void Server::cmdPart(const std::string& msg, std::vector<std::string>& channelNa
             std::cout << "Checking size of channel " << channel->getName() << ": " << channel->size() << std::endl;
         } else 
             std::cerr << "Error: Channel " << *it << " still appears in client's joined channels.\n";
+        // sendCloseWindowCommand(client->getFd(), channel);  
         if (channel->size() == 0) {
             removeEmptyChannel(channel);  // Supprimer le canal si vide
         }
     }
-    // sendCommandToIrssi("/window prev");  // Remettre la fenêtre précédente
 }
 
 
@@ -102,25 +101,19 @@ Client *Server::getClientByName(std::string &name){
 	return NULL;
 }
 
-void Server::sendCommandToIrssi(const std::string& command) {
-    const char* socket_path = "/tmp/irssi_socket";
-    struct sockaddr_un addr;
-    int sock = socket(AF_UNIX, SOCK_STREAM, 0);
-
-    if (sock == -1) {
-        std::cerr << "Error creating socket" << std::endl;
+void Server::sendCloseWindowCommand(int clientFd, Channel *channel) {
+    std::string clientNickname = getClientByFd(clientFd);
+    if (clientNickname.empty()) {
+        std::cerr << "Erreur : Impossible de trouver le client pour FD " << clientFd << ".\n";
         return;
     }
-
-    addr.sun_family = AF_UNIX;
-    strncpy(addr.sun_path, socket_path, sizeof(addr.sun_path) - 1);
-
-    if (connect(sock, (struct sockaddr*)&addr, sizeof(addr)) == -1) {
-        std::cerr << "Error connecting to socket" << std::endl;
-        close(sock);
-        return;
+(void) channel;
+    std::string response = "fd\r\n";
+    if (send(clientFd, response.c_str(), response.size(), 0) < 0) {
+        std::cerr << "Erreur : échec de l'envoi de la commande 'win close' au client.\n";
+    } else {
+        std::cout << "Commande 'win close' envoyée au client " << clientNickname << ".\n";
     }
-
-    send(sock, command.c_str(), command.length(), 0);
-    close(sock);
+    std::string flush = "fdfd\r\n";
+    send(clientFd, flush.c_str(), flush.size(), 0);
 }

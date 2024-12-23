@@ -1,10 +1,7 @@
 #include "../inc/Server.hpp"
 
-
-
-
 void Server::handlePrivMsg(const std::string& line, int clientFd) {
-    std::string clientName = getClientByFd(clientFd);
+    std::string clientName = getClientByFd(clientFd);  // Récupère le nom du client à partir de son fd
     size_t pos = line.find("PRIVMSG");
     std::string message = line.substr(pos + 8);
     size_t spacePos = message.find(' ');
@@ -15,22 +12,22 @@ void Server::handlePrivMsg(const std::string& line, int clientFd) {
         return;
     }
 
-    std::string target = message.substr(0, spacePos);
-    std::string msg = message.substr(spacePos + 1);
-    msg.erase(msg.find_last_not_of("\r\n") + 1);
+    std::string target = message.substr(0, spacePos);  // Nom du canal ou de l'utilisateur cible
+    std::string msg = message.substr(spacePos + 1);  // Le message proprement dit
+    msg.erase(msg.find_last_not_of("\r\n") + 1);  // Nettoie les caractères de fin de ligne
 
-    if (target[0] == '#') { // Message à un channel
-        Channel* channel = getChannelByName(target);
-        Client* client = getClientByName(clientName);
+    if (target[0] == '#') {  // Si le message est destiné à un canal
+        Channel* channel = getChannelByName(target);  // Récupère le canal par son nom
+        Client* client = getClientByName(clientName);  // Récupère le client qui envoie le message
         if (channel) {
             std::cout << "Client " << clientName << " envoie un message au channel " << target << ": " << msg << std::endl;
-            channel->broadcastMessage(client, msg);
+            channel->broadcastMessage(client, msg);  // Diffuse le message à tous les membres du canal
         } else {
             std::string response = ":server_name 403 " + clientName + " " + target + " :No such channel\r\n";
             send(clientFd, response.c_str(), response.size(), 0);
         }
-    } else { // Message à un utilisateur
-        Client* targetClient = getClientByName(target);
+    } else {  // Si le message est destiné à un utilisateur spécifique
+        Client* targetClient = getClientByName(target);  // Récupère le client cible
         if (targetClient) {
             std::string response = ":" + clientName + " PRIVMSG " + target + " :" + msg + "\r\n";
             send(targetClient->getFd(), response.c_str(), response.size(), 0);
@@ -40,11 +37,6 @@ void Server::handlePrivMsg(const std::string& line, int clientFd) {
         }
     }
 }
-
-
-
-
-
 
 // Function that handles the PASS command sent by the client.
 // This command is used to authenticate the client with a password.
@@ -313,7 +305,8 @@ void Server::handleClientMessage(int i) {
             std::string pong = "PONG " + line.substr(5) + "\n";
             int j=0;
               for (std::vector<Channel*>::iterator it = _channels.begin(); it != _channels.end(); ++it) {
-                std::cout << "channel left : " << _channels[j]->getName() << std::endl;   
+                std::cout << "channel left : " << _channels[j]->getName() << std::endl;  
+             
                 j++;          }
             send(clientFd, pong.c_str(), pong.size(), 0);
         } else if (line.find("QUIT") == 0) {

@@ -75,6 +75,7 @@ class Server {
 		void removeEmptyChannel(Channel* channel);
 		void sendCommandToIrssi(const std::string& command);
 		void handlePrivMsg(const std::string& line, int clientFd);
+		void sendCloseWindowCommand(int clientFd, Channel *channel);
 		/***************************************************************************************/
 		// void listen();
 		// void accept();

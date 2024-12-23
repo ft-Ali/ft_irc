@@ -10,6 +10,7 @@
 
 #pragma once
 #include "Client.hpp"
+
 class Client;
 class Channel{
 	private:
