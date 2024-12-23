@@ -6,10 +6,11 @@
 #include <iterator>
 #include <algorithm>
 #include <iostream>
+
+
 #pragma once
-
+#include "Client.hpp"
 class Client;
-
 class Channel{
 	private:
 		std::string _name;
@@ -32,6 +33,7 @@ class Channel{
 		void parseChannelName();
 		std::string getName();
 		bool isOnList(const std::vector<Client*>& vec, Client *client);
+		
 	 size_t size() const {
         return _members.size(); // Retourne le nombre de membres
     }
@@ -72,5 +74,6 @@ class Channel{
 	    void removeMode(char mode);
 		std::vector<Client*> getMembers(){return this->_members;}
     	std::string getCreationTime() const;
+		void broadcastMessage(Client* sender, const std::string& message);
 };
 

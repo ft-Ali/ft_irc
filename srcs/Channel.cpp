@@ -1,4 +1,5 @@
 #include "../inc/Channel.hpp"
+#include "../inc/Server.hpp"
 
 Channel::Channel(Client *client,const std::string  &ChannelName) : _name(ChannelName), _topic(""), _key(""),
 _maxMembers(0) , _editTopic(false), _invitOnly(false), _isOperator(false) {
@@ -192,4 +193,24 @@ void Channel::parseChannelName(){
 		throw(std::invalid_argument("Inavlid channel name"));
 
 }
+
+// Dans la classe Channel
+void Channel::broadcastMessage(Client* sender, const std::string& message) {
+    std::cout << "Membres du channel " << _name << ": ";
+    for (size_t i = 0; i < _members.size(); ++i) {
+        std::cout << _members[i]->getNickName() << " ";
+    }
+    std::cout << std::endl;
+
+    for (size_t i = 0; i < _members.size(); ++i) {
+        if (_members[i] != sender) {
+            _members[i]->sendMessage(sender->getNickName() + ": " + message);
+        }
+    }
+}
+
+
+
+
+
 

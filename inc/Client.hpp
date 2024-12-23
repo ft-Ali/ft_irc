@@ -19,6 +19,8 @@
 #include <csignal>
 #include <stdbool.h>
 #include "Channel.hpp"
+#pragma once
+class Channel;
 
 class Client {
     private:
@@ -65,4 +67,13 @@ class Client {
 	    //---------------//Methods
         void print();
         void removeJoinedChannel(Channel *channel);
+     void sendMessage(const std::string& message) {
+        std::string formattedMessage = message + "\r\n";
+        std::cout << "Envoi du message au client FD " << _fd << ": " << formattedMessage + "\n\r";
+        if (send(_fd, formattedMessage.c_str(), formattedMessage.size(), 0) < 0) {
+            std::cerr << "Erreur : échec de l'envoi du message au client.\n";
+        }
+    }
+
+
 };

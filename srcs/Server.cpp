@@ -3,6 +3,49 @@
 
 
 
+void Server::handlePrivMsg(const std::string& line, int clientFd) {
+    std::string clientName = getClientByFd(clientFd);
+    size_t pos = line.find("PRIVMSG");
+    std::string message = line.substr(pos + 8);
+    size_t spacePos = message.find(' ');
+
+    if (spacePos == std::string::npos) {
+        std::string response = "ERROR: Invalid PRIVMSG format.\n";
+        send(clientFd, response.c_str(), response.size(), 0);
+        return;
+    }
+
+    std::string target = message.substr(0, spacePos);
+    std::string msg = message.substr(spacePos + 1);
+    msg.erase(msg.find_last_not_of("\r\n") + 1);
+
+    if (target[0] == '#') { // Message à un channel
+        Channel* channel = getChannelByName(target);
+        Client* client = getClientByName(clientName);
+        if (channel) {
+            std::cout << "Client " << clientName << " envoie un message au channel " << target << ": " << msg << std::endl;
+            channel->broadcastMessage(client, msg);
+        } else {
+            std::string response = ":server_name 403 " + clientName + " " + target + " :No such channel\r\n";
+            send(clientFd, response.c_str(), response.size(), 0);
+        }
+    } else { // Message à un utilisateur
+        Client* targetClient = getClientByName(target);
+        if (targetClient) {
+            std::string response = ":" + clientName + " PRIVMSG " + target + " :" + msg + "\r\n";
+            send(targetClient->getFd(), response.c_str(), response.size(), 0);
+        } else {
+            std::string response = ":server_name 401 " + clientName + " " + target + " :No such nick/channel\r\n";
+            send(clientFd, response.c_str(), response.size(), 0);
+        }
+    }
+}
+
+
+
+
+
+
 // Function that handles the PASS command sent by the client.
 // This command is used to authenticate the client with a password.
 // - If the password is correct, the client is authenticated and can proceed with sending the NICK and USER commands.
@@ -264,6 +307,8 @@ void Server::handleClientMessage(int i) {
             processJoin(clientName, line);
         }else if (line.find("PART") == 0) {
             processPart(client, line);
+        } else if (line.find("PRIVMSG") == 0) {
+            handlePrivMsg(line, clientFd);
         } else if (line.find("PING") == 0) {
             std::string pong = "PONG " + line.substr(5) + "\n";
             int j=0;
