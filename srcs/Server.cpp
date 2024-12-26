@@ -1,22 +1,42 @@
 #include "../inc/Server.hpp"
 
+void Server::handlePrivMsg(const std::string& line, int clientFd) {
+    std::string clientName = getClientByFd(clientFd);  // Récupère le nom du client à partir de son fd
+    size_t pos = line.find("PRIVMSG");
+    std::string message = line.substr(pos + 8);
+    size_t spacePos = message.find(' ');
 
- void Server::processJoin(std::string name, const std::string& message) {
-    size_t spacePos = message.find(' ', 5);
-    std::string channelName = message.substr(5, spacePos - 5);
-    channelName.erase(channelName.find_last_not_of("\r\n") + 1);
-    Client *client = getClientByName(name);
-      if (!client) {
-        std::cerr << "Error: Client '" << name << "' not found.\n";
+    if (spacePos == std::string::npos) {
+        std::string response = "ERROR: Invalid PRIVMSG format.\n";
+        send(clientFd, response.c_str(), response.size(), 0);
         return;
     }
-    std::string password;
-    if (spacePos != std::string::npos) {
-        password = message.substr(spacePos + 1);
-        password.erase(password.find_last_not_of("\r\n") + 1);
+
+    std::string target = message.substr(0, spacePos);
+    std::string msg = message.substr(spacePos + 1);
+    msg.erase(msg.find_last_not_of("\r\n") + 1);
+
+    if (target[0] == '#' ) {
+        Channel* channel = getChannelByName(target);
+        Client* client = getClientByName(clientName);  
+        if (channel && channel->checkListMembers(client)) {
+            std::cout << "Client " << clientName << " envoie un message au channel " << target << ": " << msg << std::endl;
+            channel->broadcastMessage(client, msg); 
+        } else {
+            std::string response = ":server_name 403 " + clientName + " " + target + " :No such channel\r\n";
+            send(clientFd, response.c_str(), response.size(), 0);
+        }
+    } else {  
+        Client* targetClient = getClientByName(target);  // Récupère le client cible
+        if (targetClient) {
+            std::string response = ":" + clientName + " PRIVMSG " + target + " :" + msg + "\r\n";
+            send(targetClient->getFd(), response.c_str(), response.size(), 0);
+        } else {
+            std::string response = ":server_name 401 " + clientName + " " + target + " :No such nick/channel\r\n";
+            send(clientFd, response.c_str(), response.size(), 0);
+        }
     }
-    cmdJoin(channelName, password, client);
-} 
+}
 
 // Function that handles the PASS command sent by the client.
 // This command is used to authenticate the client with a password.
@@ -31,8 +51,8 @@
 void Server::handlePass(int clientFd, const std::string& message, size_t i) {
 
     std::string password = message.substr(5);
-    password.erase(password.find_last_not_of("\r\n") + 1); // Supprime '\r' et '\n' en fin de chaîne
-    password.erase(password.find_last_not_of(" \t") + 1);  // Supprime les espaces et tabulations
+    password.erase(password.find_last_not_of("\r\n") + 1);
+    password.erase(password.find_last_not_of(" \t") + 1);
 
     if (password.empty()) {
         std::string response = "ERROR: Password cannot be empty. Disconnecting.\n";
@@ -49,7 +69,7 @@ void Server::handlePass(int clientFd, const std::string& message, size_t i) {
         std::string response = "Welcome! Use /quote USER to continue.\n";
         send(clientFd, response.c_str(), response.size(), 0);
         std::cout << "Client FD " << _clients[clientFd -4]->getUserName() << " authenticated successfully." << std::endl;
-    } else {
+    } else if(!_authenticatedClients[clientFd]) {
         std::string response = "ERROR: Authentication failed. Disconnecting.\n";
         send(clientFd, response.c_str(), response.size(), 0);
         close(clientFd);
@@ -150,7 +170,6 @@ for (size_t i = 0; i < fds.size(); ++i) {
 }
 
 // Libération des objets Client*
-std::cout << "CLient sizeeeee: " << _clients.size() << std::endl;
 for (size_t i = 0; i < _clients.size(); ++i) {
     delete _clients[i];
 }
@@ -196,7 +215,7 @@ void Server::handleCap(int clientFd, const std::string& message) {
         return;
     }
 
-    if (message.find("CAP LS") == 0) {
+    if (message.find("CAP LS") == 0 && !_authenticatedClients[clientFd]) {
         std::string response = "CAP * LS :multi-prefix\n";
         send(clientFd, response.c_str(), response.size(), 0);
         std::cout << "Sent CAP LS response to client FD " << clientFd << std::endl;
@@ -255,7 +274,7 @@ void Server::handleClientMessage(int i) {
 
     buffer[ret] = '\0'; // Null-terminate the received message
     std::string message(buffer);
-    std::cout << "Received message (" << _clients[clientFd -4]->getUserName()<< "): " << message  << std::endl;
+    std::cout << "Received message (" << _clients[clientFd -4]->getUserName()<< ")" << message  << std::endl;
 
     std::istringstream stream(message);
     std::string line;
@@ -263,6 +282,8 @@ void Server::handleClientMessage(int i) {
         line.erase(line.find_last_not_of("\r\n") + 1);
         if (line.empty()) 
             continue;
+        std::string clientName = getClientByFd(clientFd);
+        Client *client = getClientByName(clientName);
         if (_authenticatedClients.find(clientFd) == _authenticatedClients.end() || !_authenticatedClients[clientFd]) {
             if (line.find("PASS") == 0) {
                 handlePass(clientFd, line, i);
@@ -275,10 +296,18 @@ void Server::handleClientMessage(int i) {
         } else if (line.find("USER ") == 0) {
             handleUser(clientFd);
         } else if (line.find("JOIN") == 0) {
-            std::string clientName = getClientByFd(clientFd);
             processJoin(clientName, line);
+        }else if (line.find("PART") == 0) {
+            processPart(client, line);
+        } else if (line.find("PRIVMSG") == 0) {
+            handlePrivMsg(line, clientFd);
         } else if (line.find("PING") == 0) {
             std::string pong = "PONG " + line.substr(5) + "\n";
+            int j=0;
+              for (std::vector<Channel*>::iterator it = _channels.begin(); it != _channels.end(); ++it) {
+                std::cout << "channel left : " << _channels[j]->getName() << std::endl;  
+             
+                j++;          }
             send(clientFd, pong.c_str(), pong.size(), 0);
         } else if (line.find("QUIT") == 0) {
             std::string response = "Goodbye!\n";

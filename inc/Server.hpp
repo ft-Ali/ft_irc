@@ -66,14 +66,14 @@ class Server {
 		void checkRestriction(Channel &channel, Client *client, std::string &key);
 		void handleSingleJoin(std::string &channelName, std::string &key, Client *client);
 		Channel *getChannelByName(std::string &name);
-		void    cmdPart(const std::string &message, std::vector<std::string>&arg ,Client *client);
-		void	cmdPartAll(Client* client);
-		void    cmdPartMulti(const std::string &message, std::vector<std::string>&arg ,Client *client);
+		void    cmdPart(std::string &message, std::vector<std::string>&arg ,Client *client);
 		Client *getClientByName(std::string &name);
 		std::string getClientByFd(const int &ClientFd);
 		void processPart(Client *client, std::string &command);
+		void removeEmptyChannel(Channel* channel);
+		void handlePrivMsg(const std::string& line, int clientFd);
+		void sendCloseWindowCommand(int clientFd);
 		/***************************************************************************************/
-
 		// void listen();
 		// void accept();
 		// void read();
@@ -81,3 +81,4 @@ class Server {
 		// void close();
 };
 std::vector<std::string> splitArg(const std::string &str, char delimiter);
+void    sendMessage(int fd, const std::string &msg);

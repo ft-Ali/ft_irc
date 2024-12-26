@@ -1,7 +1,8 @@
 #include "../inc/Channel.hpp"
+#include "../inc/Server.hpp"
 
-Channel::Channel(Client *client,const std::string  &ChannelName) : _name(ChannelName), _topic(""), _key(""),
-_maxMembers(0) , _editTopic(false), _invitOnly(false) {
+Channel::Channel(Client *client,const std::string  &ChannelName) : _name(ChannelName), _topic(""), _key("")
+ ,_maxMembers(200), _editTopic(false), _invitOnly(false), _isOperator(false) {
 
     parseChannelName();
     _members.push_back(client);
@@ -10,7 +11,7 @@ _maxMembers(0) , _editTopic(false), _invitOnly(false) {
 };
 
 Channel::Channel(Client *client, const std::string  &ChannelName, const std::string &key) : _name(ChannelName), _topic(""), _key(key),
-_maxMembers(0) , _editTopic(false), _invitOnly(false) {
+  _maxMembers(200),_editTopic(false), _invitOnly(false), _isOperator(false) {
 
     parseChannelName();
     _members.push_back(client);
@@ -24,12 +25,7 @@ Channel::~Channel(){}
 
 void Channel::setInvitOnly(){this->_invitOnly = true;}
 
-void Channel::setTopic(Client *client, std::string &topicName){
-	if(_editTopic == true && checkOperatorList(client))
-		this->_topic = topicName;
-	if(_editTopic == false)
-		this->_topic = topicName;
-}
+void Channel::setTopic(std::string &topicName){this->_topic = topicName;}
 
 void Channel::setKey(std::string &key){this->_key = key;}
 
@@ -43,7 +39,7 @@ std::string Channel::getTopic(){return this->_topic;}
 
 bool Channel::getInvitOnly(){return this->_invitOnly;}
 
-size_t Channel::getmaxMembers(){return this->_maxMembers;}
+size_t Channel::getMaxMembers(){return this->_maxMembers;}
 
 std::string Channel::getModes() const{
 	std::string modes;
@@ -101,12 +97,23 @@ void Channel::addListMember(Client *client){
 	addMember(_members, client);
 }
 
+void Channel::setOperator(Client *client){
+	addMember(_operatorList, client);
+}
 /*******************************REMOVE***************************/
+void Channel::clearVec(std::vector<Client*> &vec, Channel *channel){
+	 for (size_t i = 0; i < channel->getSizeVec(vec); ++i) {
+                delete vec[i]; 
+        }
+	vec.clear();
+}
+
 void Channel::removeClientList(std::vector<Client*>& vec, Client *client){
 
-	std::vector<Client *>::iterator it = std::find(vec.begin(), vec.end(), client);
-	if(it != vec.end())
-		vec.erase(it);
+	std::vector<Client*>::iterator it = std::find(vec.begin(), vec.end(), client);
+    if (it != vec.end())
+        vec.erase(it);
+
 }
 
 void Channel::removeMember( Client *client){
@@ -139,9 +146,8 @@ void Channel::removeMode(char mode){
 		}
 	}
 }
-
 void Channel::undoInvitOnly(){this->_invitOnly = false;}
-void Channel::undoKey(){this->_key = "";}
+void Channel::undoKey(){this->_key.clear();}
 /*******************************CHECK****************************/
 bool Channel::isOnList(const std::vector<Client*>& vec, Client *client){
 	
@@ -161,14 +167,14 @@ bool Channel::checkWhiteList( Client *client){
 	if(isOnList(_whiteList, client))
 		return true;
 	return false;}
-bool Channel::checkOperatorList( Client *client){
+bool Channel::checkOperatorList(Client *client){
 
 if(isOnList(_operatorList, client))
 		return true;
 	return false;
 }
 
-bool Channel::checkListMembers( Client *client){
+bool Channel::checkListMembers(Client *client){
 	if(isOnList(_members, client))
 		return true;
 	return false;
@@ -188,4 +194,24 @@ void Channel::parseChannelName(){
 		throw(std::invalid_argument("Inavlid channel name"));
 
 }
+
+// Dans la classe Channel
+void Channel::broadcastMessage(Client* sender, const std::string& message) {
+    std::cout << "Membres du channel " << _name << ": ";
+    for (size_t i = 0; i < _members.size(); ++i) {
+        std::cout << _members[i]->getNickName() << " ";
+    }
+    std::cout << std::endl;
+
+    for (size_t i = 0; i < _members.size(); ++i) {
+        if (_members[i] != sender) {
+            _members[i]->sendMessage(sender->getNickName() + ": " + message);
+        }
+    }
+}
+
+
+
+
+
 
