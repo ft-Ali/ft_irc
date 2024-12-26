@@ -1,23 +1,5 @@
 #include "../inc/Server.hpp"
 
-
- void Server::processJoin(std::string name, const std::string& message) {
-    size_t spacePos = message.find(' ', 5);
-    std::string channelName = message.substr(5, spacePos - 5);
-    channelName.erase(channelName.find_last_not_of("\r\n") + 1);
-    Client *client = getClientByName(name);
-      if (!client) {
-        std::cerr << "Error: Client '" << name << "' not found.\n";
-        return;
-    }
-    std::string password;
-    if (spacePos != std::string::npos) {
-        password = message.substr(spacePos + 1);
-        password.erase(password.find_last_not_of("\r\n") + 1);
-    }
-    cmdJoin(channelName, password, client);
-}
-
 void Server::handlePrivMsg(const std::string& line, int clientFd) {
     std::string clientName = getClientByFd(clientFd);  // Récupère le nom du client à partir de son fd
     size_t pos = line.find("PRIVMSG");
@@ -36,15 +18,15 @@ void Server::handlePrivMsg(const std::string& line, int clientFd) {
 
     if (target[0] == '#' ) {
         Channel* channel = getChannelByName(target);
-        Client* client = getClientByName(clientName);  
+        Client* client = getClientByName(clientName);
         if (channel && channel->checkListMembers(client)) {
             std::cout << "Client " << clientName << " envoie un message au channel " << target << ": " << msg << std::endl;
-            channel->broadcastMessage(client, msg); 
+            channel->broadcastMessage(client, msg);
         } else {
             std::string response = ":server_name 403 " + clientName + " " + target + " :No such channel\r\n";
             send(clientFd, response.c_str(), response.size(), 0);
         }
-    } else {  
+    } else {
         Client* targetClient = getClientByName(target);  // Récupère le client cible
         if (targetClient) {
             std::string response = ":" + clientName + " PRIVMSG " + target + " :" + msg + "\r\n";
@@ -315,8 +297,8 @@ void Server::handleClientMessage(int i) {
             std::string pong = "PONG " + line.substr(5) + "\n";
             int j=0;
               for (std::vector<Channel*>::iterator it = _channels.begin(); it != _channels.end(); ++it) {
-                std::cout << "channel left : " << _channels[j]->getName() << std::endl;  
-             
+                std::cout << "channel left : " << _channels[j]->getName() << std::endl;
+
                 j++;          }
             send(clientFd, pong.c_str(), pong.size(), 0);
         } else if (line.find("QUIT") == 0) {
@@ -357,7 +339,7 @@ void Server::handleNewConnection() {
     //         fds.pop_back();
     //         return ;
     //     }
-    // }
+    }
 
 
     _clientNicks[clientFd] = "";
