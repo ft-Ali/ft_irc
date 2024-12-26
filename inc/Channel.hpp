@@ -43,7 +43,7 @@ class Channel{
 		void undoInvitOnly();
 		
 		std::string getTopic();//-t +t
-		void setTopic(Client *client, std::string &topicName);
+		void setTopic(std::string &topicName);
 
 		std::string getKey();//-k +k
 		void setKey(std::string &key);
@@ -52,7 +52,7 @@ class Channel{
 		void setOperator( Client *client);//-o +o
 		void removeOperator(Client* client);
 		bool checkOperatorList(Client *client);
-		bool isOerator(){return this->_isOperator;}
+		bool isOperator(){return this->_isOperator;}
 		bool checkListMembers(Client *client);
 		void addMember(std::vector<Client*>& vec, Client *client);
 		void addListMember(Client *client);
@@ -74,7 +74,15 @@ class Channel{
     	void addMode(char mode);
 	    void removeMode(char mode);
 		std::vector<Client*> getMembers(){return this->_members;}
+		size_t getSizeVec(std::vector<Client*> &vec){return vec.size();}
+		void clearVec(std::vector<Client*> &vec, Channel *channel);
     	std::string getCreationTime() const;
 		void broadcastMessage(Client* sender, const std::string& message);
+		/*******************************MODE***********************************/
+		void manageInvit(Client *client, Channel *channel, bool add);
+		void manageTopic(Channel *channel, bool add);
+		void manageKey(Channel *channel, std::string &key, bool add);
+		void manageOperator(Channel *channel, Client *client, bool add);
+		void manageSizeChannel(Channel *channel, size_t size,bool add);
 };
 

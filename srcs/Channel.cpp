@@ -1,8 +1,8 @@
 #include "../inc/Channel.hpp"
 #include "../inc/Server.hpp"
 
-Channel::Channel(Client *client,const std::string  &ChannelName) : _name(ChannelName), _topic(""), _key(""),
-_maxMembers(0) , _editTopic(false), _invitOnly(false), _isOperator(false) {
+Channel::Channel(Client *client,const std::string  &ChannelName) : _name(ChannelName), _topic(""), _key("")
+ ,_maxMembers(200), _editTopic(false), _invitOnly(false), _isOperator(false) {
 
     parseChannelName();
     _members.push_back(client);
@@ -11,7 +11,7 @@ _maxMembers(0) , _editTopic(false), _invitOnly(false), _isOperator(false) {
 };
 
 Channel::Channel(Client *client, const std::string  &ChannelName, const std::string &key) : _name(ChannelName), _topic(""), _key(key),
-_maxMembers(0) , _editTopic(false), _invitOnly(false), _isOperator(false) {
+  _maxMembers(200),_editTopic(false), _invitOnly(false), _isOperator(false) {
 
     parseChannelName();
     _members.push_back(client);
@@ -25,12 +25,7 @@ Channel::~Channel(){}
 
 void Channel::setInvitOnly(){this->_invitOnly = true;}
 
-void Channel::setTopic(Client *client, std::string &topicName){
-	if(_editTopic == true && checkOperatorList(client))
-		this->_topic = topicName;
-	if(_editTopic == false)
-		this->_topic = topicName;
-}
+void Channel::setTopic(std::string &topicName){this->_topic = topicName;}
 
 void Channel::setKey(std::string &key){this->_key = key;}
 
@@ -106,6 +101,13 @@ void Channel::setOperator(Client *client){
 	addMember(_operatorList, client);
 }
 /*******************************REMOVE***************************/
+void Channel::clearVec(std::vector<Client*> &vec, Channel *channel){
+	 for (size_t i = 0; i < channel->getSizeVec(vec); ++i) {
+                delete vec[i]; 
+        }
+	vec.clear();
+}
+
 void Channel::removeClientList(std::vector<Client*>& vec, Client *client){
 
 	std::vector<Client*>::iterator it = std::find(vec.begin(), vec.end(), client);
@@ -144,9 +146,8 @@ void Channel::removeMode(char mode){
 		}
 	}
 }
-
 void Channel::undoInvitOnly(){this->_invitOnly = false;}
-void Channel::undoKey(){this->_key = "";}
+void Channel::undoKey(){this->_key.clear();}
 /*******************************CHECK****************************/
 bool Channel::isOnList(const std::vector<Client*>& vec, Client *client){
 	

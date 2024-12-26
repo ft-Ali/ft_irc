@@ -90,11 +90,11 @@ void	Server::checkRestriction(Channel &channel, Client *client, std::string &key
         return;
     }
 
-    if (channel.size() >= channel.getMaxMembers()) {
-        std::string response = ":server_name 471 " + client->getNickName() + " " + channel.getName() + " :Cannot join channel (+l)\r\n";
-        send(client->getFd(), response.c_str(), response.size(), 0);
-        return;
-    }
+    // if (channel.size() >= channel.getMaxMembers()) {
+    //     std::string response = ":server_name 471 " + client->getNickName() + " " + channel.getName() + " :Cannot join channel (+l)\r\n";
+    //     send(client->getFd(), response.c_str(), response.size(), 0);
+    //     return;
+    // }
 	if (!channel.getKey().empty()) {
         if (key != channel.getKey()) {
             std::string response = ":server_name 475 " + client->getNickName() + " " + channel.getName() + " :Invalid channel key\r\n";
