@@ -72,7 +72,7 @@ class Server {
 		void processPart(Client *client, std::string &command);
 		void removeEmptyChannel(Channel* channel);
 		void handlePrivMsg(const std::string& line, int clientFd);
-		void sendCloseWindowCommand(int clientFd, Channel *channel);
+		void sendCloseWindowCommand(int clientFd);
 		/***************************************************************************************/
 		// void listen();
 		// void accept();

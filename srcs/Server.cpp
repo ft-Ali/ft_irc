@@ -12,21 +12,21 @@ void Server::handlePrivMsg(const std::string& line, int clientFd) {
         return;
     }
 
-    std::string target = message.substr(0, spacePos);  // Nom du canal ou de l'utilisateur cible
-    std::string msg = message.substr(spacePos + 1);  // Le message proprement dit
-    msg.erase(msg.find_last_not_of("\r\n") + 1);  // Nettoie les caractères de fin de ligne
+    std::string target = message.substr(0, spacePos);
+    std::string msg = message.substr(spacePos + 1);
+    msg.erase(msg.find_last_not_of("\r\n") + 1);
 
-    if (target[0] == '#' ) {  // Si le message est destiné à un canal
-        Channel* channel = getChannelByName(target);  // Récupère le canal par son nom
-        Client* client = getClientByName(clientName);  // Récupère le client qui envoie le message
+    if (target[0] == '#' ) {
+        Channel* channel = getChannelByName(target);
+        Client* client = getClientByName(clientName);  
         if (channel && channel->checkListMembers(client)) {
             std::cout << "Client " << clientName << " envoie un message au channel " << target << ": " << msg << std::endl;
-            channel->broadcastMessage(client, msg);  // Diffuse le message à tous les membres du canal
+            channel->broadcastMessage(client, msg); 
         } else {
             std::string response = ":server_name 403 " + clientName + " " + target + " :No such channel\r\n";
             send(clientFd, response.c_str(), response.size(), 0);
         }
-    } else {  // Si le message est destiné à un utilisateur spécifique
+    } else {  
         Client* targetClient = getClientByName(target);  // Récupère le client cible
         if (targetClient) {
             std::string response = ":" + clientName + " PRIVMSG " + target + " :" + msg + "\r\n";
@@ -51,8 +51,8 @@ void Server::handlePrivMsg(const std::string& line, int clientFd) {
 void Server::handlePass(int clientFd, const std::string& message, size_t i) {
 
     std::string password = message.substr(5);
-    password.erase(password.find_last_not_of("\r\n") + 1); // Supprime '\r' et '\n' en fin de chaîne
-    password.erase(password.find_last_not_of(" \t") + 1);  // Supprime les espaces et tabulations
+    password.erase(password.find_last_not_of("\r\n") + 1);
+    password.erase(password.find_last_not_of(" \t") + 1);
 
     if (password.empty()) {
         std::string response = "ERROR: Password cannot be empty. Disconnecting.\n";

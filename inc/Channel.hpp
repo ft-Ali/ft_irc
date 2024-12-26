@@ -52,7 +52,7 @@ class Channel{
 		void setOperator( Client *client);//-o +o
 		void removeOperator(Client* client);
 		bool checkOperatorList(Client *client);
-		
+		bool isOerator(){return this->_isOperator;}
 		bool checkListMembers(Client *client);
 		void addMember(std::vector<Client*>& vec, Client *client);
 		void addListMember(Client *client);
