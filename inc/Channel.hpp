@@ -59,7 +59,7 @@ class Channel{
 
 		void removeMember(Client *client);
 		void removeClientList(std::vector<Client*>& vec, Client *client);
-		size_t getmaxMembers();
+		size_t getMaxMembers();
 		void setmaxMembers(size_t size);
 		void leaveChannel(Client *client);
 		bool checkWhiteList(Client *client);

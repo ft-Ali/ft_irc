@@ -44,7 +44,7 @@ std::string Channel::getTopic(){return this->_topic;}
 
 bool Channel::getInvitOnly(){return this->_invitOnly;}
 
-size_t Channel::getmaxMembers(){return this->_maxMembers;}
+size_t Channel::getMaxMembers(){return this->_maxMembers;}
 
 std::string Channel::getModes() const{
 	std::string modes;
