@@ -25,7 +25,6 @@ class Server {
 		int _port; //av[1]
 		std::string _password;  //av[2]
 		int _serSocketFd;
-        int _suffix;
 
 		static Server* instance;
 		std::vector<Client*> _clients; //list Fd et IP address clients
@@ -35,9 +34,9 @@ class Server {
 		std::map<int, bool> _clientRegistered; //-> map of client fds and registration status
 		std::map<int, std::string> _clientUsers; //-> map of client fds and users
 		std::map<int, std::string> _clientNicks; //-> map of client fds and nicks
-		
+
 	public:
-		Server(int port, std::string password) : _port(port), _password(password), _serSocketFd(-1), _suffix(0), fds(0) {
+		Server(int port, std::string password) : _port(port), _password(password), _serSocketFd(-1), fds(0) {
 			if(instance != NULL) {
 				throw(std::runtime_error("error: Server instance already exists"));
 			}
@@ -45,9 +44,9 @@ class Server {
 		};
 		~Server() {
 			closeServer();
-		 
+
 			instance = NULL;
-			
+
 		};
 		void serverInit();
 		void serverLoop();
