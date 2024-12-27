@@ -84,6 +84,5 @@ class Channel{
 		void manageKey(Channel *channel, std::string &key, bool add);
 		void manageOperator(Channel *channel, Client *client, bool add);
 		void manageSizeChannel(Channel *channel, size_t size,bool add);
-		
 };
 

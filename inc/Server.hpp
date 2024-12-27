@@ -79,6 +79,7 @@ class Server {
 		// void read();
 		// void send();
 		// void close();
+		void    sendTopic(int clientFd, std::string channelName, std::string topic);
 };
 std::vector<std::string> splitArg(const std::string &str, char delimiter);
 void    sendMessage(int fd, const std::string &msg);
