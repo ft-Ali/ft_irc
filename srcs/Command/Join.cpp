@@ -35,7 +35,6 @@ void	Server::cmdJoin(std::string &Channelname, std::string &key, Client *client)
 		std::string channelName = channels[i];
 		if (i < keyLists.size())
 			key = keyLists[i];
-        std::cout << "key : " << key << std::endl;
 		handleSingleJoin(channelName, key, client);
 	}
 }
@@ -102,11 +101,11 @@ void	Server::checkRestriction(Channel &channel, Client *client, std::string &key
             return;
         }
     }
-    if (channel.checkListMembers(client)) {
-            std::string windowCommand = ":server_name NOTICE " + client->getNickName() + " :/window goto " + channel.getName() + "\r\n";
-            send(client->getFd(), windowCommand.c_str(), windowCommand.size(), 0);
-        return;
-    }
+    // if (channel.checkListMembers(client)) {
+    //         std::string windowCommand = ":server_name NOTICE " + client->getNickName() + " :/window goto " + channel.getName() + "\r\n";
+    //         send(client->getFd(), windowCommand.c_str(), windowCommand.size(), 0);
+    //     return;
+    // }
 	channel.addListMember(client);
     client->setJoinedChannels(&channel);
 }

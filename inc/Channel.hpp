@@ -26,7 +26,7 @@ class Channel{
     	std::vector<Client*> _whiteList;
     	std::vector<Client*> _banList;
     	std::vector<Client*> _operatorList;
-		std::vector<char> _modes;
+		std::vector<std::string> _modes;
 	public:
 		Channel(Client *client, std::string const &ChannelName, const std::string &key);
 		Channel(Client *client, std::string const &ChannelName);
@@ -71,8 +71,8 @@ class Channel{
 		void removeBanList(Client *client);
 		
 		std::string getModes() const;
-    	void addMode(char mode);
-	    void removeMode(char mode);
+    	void addMode(char mode, char sign);
+	    void removeMode(char mode, char sign);
 		std::vector<Client*> getMembers(){return this->_members;}
 		size_t getSizeVec(std::vector<Client*> &vec){return vec.size();}
 		void clearVec(std::vector<Client*> &vec, Channel *channel);
@@ -81,9 +81,9 @@ class Channel{
 		/*******************************MODE***********************************/
 		void manageInvit(Client *client, Channel *channel, bool add);
 		void manageTopic(Channel *channel, bool add);
-		void manageKey(Channel *channel, std::string &key, bool add);
+		void manageKey(Channel *channel, std::string key, bool add);
 		void manageOperator(Channel *channel, Client *client, bool add);
 		void manageSizeChannel(Channel *channel, size_t size,bool add);
 		void whichMode(char mode, char sign, Client *client, Channel *channel);
-};
+		};
 

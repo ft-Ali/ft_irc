@@ -44,6 +44,7 @@ size_t Channel::getMaxMembers(){return this->_maxMembers;}
 std::string Channel::getModes() const{
 	std::string modes;
 	for(size_t i = 0;i<_modes.size(); ++i){
+		std::cout << "mode :" << _modes[i] << std::endl;
 		modes += _modes[i];
 	}
 	return modes;
@@ -75,15 +76,24 @@ void Channel::addMember(std::vector<Client*> &vec, Client *client){
 		vec.push_back(client);
 }
 
-void Channel::addMode(char mode){
+void Channel::addMode(char mode, char sign){
+	std::string fullMode;
+	fullMode += sign;
+	fullMode += mode;
+	if(sign != '+' || sign != '-')
+		return ;
+	std::cout << "ici \n";
+	if(mode!='t' ||mode!='k' ||mode!='o' ||mode!='l' ||mode!='i')
+		return ;
+	std::cout << "ici ou la\n";
+	
 	for(size_t i = 0; i < _modes.size(); ++i){
-		if(mode == _modes[i])
+		if(_modes[i].find(fullMode))
 			return ;
 	}
-	if(mode == 'i' ||mode == 't' ||mode == 'k' ||mode == 'o' ||mode == 'l')
-		_modes.push_back(mode);
-	// else
-		std::cout << "Invalid mod \n";
+	std::cout << "mode : " << fullMode << std::endl;
+	_modes.push_back(fullMode);
+	
 }
 
 void Channel::addToWhiteList( Client *client){
@@ -103,7 +113,8 @@ void Channel::setOperator(Client *client){
 /*******************************REMOVE***************************/
 void Channel::clearVec(std::vector<Client*> &vec, Channel *channel){
 	 for (size_t i = 0; i < channel->getSizeVec(vec); ++i) {
-                delete vec[i];
+            if(vec[i])
+				delete vec[i];
         }
 	vec.clear();
 }
@@ -138,9 +149,12 @@ void Channel::removeBanList(Client *client){
 	removeClientList(_banList, client);
 }
 
-void Channel::removeMode(char mode){
+void Channel::removeMode(char mode, char sign){
+	std::string fullMode;
+	fullMode += sign;
+	fullMode += mode;
 	for(size_t i = 0; i < _modes.size(); ++i){
-		if(mode == _modes[i]){
+		if(_modes[i].find(fullMode)){
 			_modes.erase(_modes.begin()+ i) ;
 			return ;
 		}

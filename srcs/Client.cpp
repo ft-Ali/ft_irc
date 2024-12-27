@@ -29,7 +29,7 @@ void Client::removeJoinedChannel(Channel *channel){
 }
 
 void Client::print() {
-    std::cout << std::endl
+    // std::cout << std::endl
 //     << "Client username: " << this->getUserName() << std::endl
 //     << "Ipaddr: " << this->getIpaddr()<< std::endl
 //     << "Port: " << this->getPort() << std::endl 

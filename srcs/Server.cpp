@@ -26,19 +26,35 @@ void Server::handlePrivMsg(const std::string& line, int clientFd) {
             std::string response = ":server_name 403 " + clientName + " " + target + " :No such channel\r\n";
             send(clientFd, response.c_str(), response.size(), 0);
         }
-    } else {
-        Client* targetClient = getClientByName(target);
-        if (targetClient) {
-        std::string response = ":" + clientName + " PRIVMSG " + target + " " + msg + "\r\n";
-        send(targetClient->getFd(), response.c_str(), response.size(), 0);
+    }else {  
+    Client* targetClient = getClientByName(target);  // Récupère le client cible
+    if (targetClient) {
+        // Si la cible est un client, envoie un message privé et redirige vers la fenêtre du client
+        // std::string response = ":" + clientName + " PRIVMSG " + target + " :" + msg + "\r\n";
+        // send(targetClient->getFd(), response.c_str(), response.size(), 0);
 
-        // std::string windowCommand = ":server_name NOTICE " + targetClient->getNickName() + " :/window goto " + targetClient->getNickName() + "\r\n";
-        // send(targetClient->getFd(), windowCommand.c_str(), windowCommand.size(), 0);
-     } else {
+        // Commande pour rediriger le client vers sa fenêtre privée
+        std::string windowCommand = ":server_name NOTICE " + clientName + " :/window goto " + getClientByFd(clientFd) + "\r\n";
+        send(targetClient->getFd(), windowCommand.c_str(), windowCommand.size(), 0);
+    } else {
+        // Si la cible n'est pas un client, vérifier si c'est un canal
+        Channel* channel = getChannelByName(target);
+        if (channel) {
+            // Si c'est un canal, envoie un message et redirige vers la fenêtre du canal
+            std::string response = ":" + clientName + " PRIVMSG " + target + " :" + msg + "\r\n";
+            channel->broadcastMessage(targetClient, msg);
+
+            // Commande pour rediriger le client vers la fenêtre du canal
+            std::string windowCommand = ":server_name NOTICE " + clientName + " :/window goto " + target + "\r\n";
+            send(targetClient->getFd(), windowCommand.c_str(), windowCommand.size(), 0);
+        } else {
+            // Si la cible est inconnue (ni un client, ni un canal), envoie une erreur
             std::string response = ":server_name 401 " + clientName + " " + target + " :No such nick/channel\r\n";
             send(clientFd, response.c_str(), response.size(), 0);
         }
     }
+}
+
 }
 
 // Function that handles the PASS command sent by the client.
@@ -123,7 +139,7 @@ void Server::handleNick(int clientFd, const std::string& message) {
     send(clientFd, response.c_str(), response.size(), 0);
 
     std::cout << "Client FD " << clientFd << " changed nickname from "
-            //   << oldNickname << " to " << newNickname << std::endl;
+              << oldNickname << " to " << newNickname << std::endl;
 }
 
 // Function that handles the USER command sent by the client.
@@ -307,6 +323,8 @@ void Server::handleClientMessage(int i) {
             processPart(client, line);
         } else if (line.find("PRIVMSG") == 0) {
             handlePrivMsg(line, clientFd);
+        }else if (line.find("MODE") == 0) {
+            manageMode(line, client);
         } else if (line.find("PING") == 0) {
             std::string pong = "PONG " + line.substr(5) + "\n";
             int j=0;
@@ -354,7 +372,7 @@ void Server::handleNewConnection() {
     //         fds.pop_back();
     //         return ;
     //     }
-    }
+    // }
 
 
     _clientNicks[clientFd] = "";
