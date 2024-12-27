@@ -36,7 +36,7 @@ class Client {
         std::vector<Channel*> _joinedChannels;
 	public:
         Client();
-		Client(int fd, int clientPort, std::string clientIp, std::string user, std::string nick): 
+		Client(int fd, int clientPort, std::string clientIp, std::string user, std::string nick):
             _fd(fd), _port(clientPort), _ip(clientIp), _username(user), _nickname(nick), _isAuthentificated(false), _isRegistered(false), _isOperator(false), _isConnected(false) {};
         ~Client() {}
         Client(Client const &src){*this = src;}
@@ -67,13 +67,6 @@ class Client {
 	    //---------------//Methods
         void print();
         void removeJoinedChannel(Channel *channel);
-     void sendMessage(const std::string& message) {
-        std::string formattedMessage = message + "\r\n";
-        std::cout << "Envoi du message au client FD " << _fd << ": " << formattedMessage + "\n\r";
-        if (send(_fd, formattedMessage.c_str(), formattedMessage.size(), 0) < 0) {
-            std::cerr << "Erreur : échec de l'envoi du message au client.\n";
-        }
-    }
 
 
 };

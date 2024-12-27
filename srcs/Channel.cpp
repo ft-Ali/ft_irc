@@ -68,7 +68,7 @@ void Channel::addMember(std::vector<Client*> &vec, Client *client){
 	// }
 	// else
 	// for(std::vector<Client*>::iterator it = _members.begin(); it != _members.end(); ++it){
-		
+
 	// 	std::cout <<"client :" << client->getName() << std::endl;
 
 	// }
@@ -103,7 +103,7 @@ void Channel::setOperator(Client *client){
 /*******************************REMOVE***************************/
 void Channel::clearVec(std::vector<Client*> &vec, Channel *channel){
 	 for (size_t i = 0; i < channel->getSizeVec(vec); ++i) {
-                delete vec[i]; 
+                delete vec[i];
         }
 	vec.clear();
 }
@@ -150,7 +150,7 @@ void Channel::undoInvitOnly(){this->_invitOnly = false;}
 void Channel::undoKey(){this->_key.clear();}
 /*******************************CHECK****************************/
 bool Channel::isOnList(const std::vector<Client*>& vec, Client *client){
-	
+
 	std::vector<Client *>::const_iterator it = std::find(vec.begin(), vec.end(), client);
 	if(it != vec.end())
 		return true;
@@ -163,7 +163,7 @@ bool Channel::checkBanList( Client *client){
 	return false;
 }
 bool Channel::checkWhiteList( Client *client){
-	
+
 	if(isOnList(_whiteList, client))
 		return true;
 	return false;}
@@ -184,7 +184,7 @@ void Channel::parseChannelName(){
 
 	if(_name.size() > 50)
 		throw(std::invalid_argument("Inavlid size name"));
-	if(_name[0] != '#')	
+	if(_name[0] != '#')
 		throw(std::invalid_argument("Inavlid channel prefix"));
 	if(_name.find(' ') != std::string::npos)
 		throw(std::invalid_argument("Inavlid channel name"));
@@ -196,22 +196,12 @@ void Channel::parseChannelName(){
 }
 
 // Dans la classe Channel
-void Channel::broadcastMessage(Client* sender, const std::string& message) {
-    std::cout << "Membres du channel " << _name << ": ";
-    for (size_t i = 0; i < _members.size(); ++i) {
-        std::cout << _members[i]->getNickName() << " ";
-    }
-    std::cout << std::endl;
-
-    for (size_t i = 0; i < _members.size(); ++i) {
-        if (_members[i] != sender) {
-            _members[i]->sendMessage(sender->getNickName() + ": " + message);
+void Channel::broadcastMessage(Client* sender, const std::string& msg) {
+    for (std::vector<Client*>::iterator it = _members.begin(); it != _members.end(); ++it) {
+        Client* member = *it;
+        if (member != sender) {
+            std::string response = ":" + sender->getNickName() + " PRIVMSG " + getName() + " " + msg + "\r\n";
+            send(member->getFd(), response.c_str(), response.size(), 0);
         }
     }
 }
-
-
-
-
-
-
