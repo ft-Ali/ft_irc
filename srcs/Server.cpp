@@ -256,13 +256,12 @@ void Server::handleClientMessage(int i) {
     // Receive the message from the client
     int ret = recv(clientFd, buffer, sizeof(buffer) - 1, 0);
     if (ret <= 0) {
-    close(clientFd); // Fermer le FD
-    _clientNicks.erase(clientFd); // Supprimer le nickname associé
-    _clientUsers.erase(clientFd); // Supprimer le username associé
-    _authenticatedClients.erase(clientFd); // Supprimer l'état d'authentification
-    std::cout << "Client FD " << clientFd << " disconnected and cleaned up." << std::endl;
-}
-
+        close(clientFd); // Fermer le FD
+        _clientNicks.erase(clientFd); // Supprimer le nickname associé
+        _clientUsers.erase(clientFd); // Supprimer le username associé
+        _authenticatedClients.erase(clientFd); // Supprimer l'état d'authentification
+        std::cout << "Client FD " << clientFd << " disconnected and cleaned up." << std::endl;
+    }
 
     buffer[ret] = '\0'; // Null-terminate the received message
     std::string message(buffer);
@@ -298,11 +297,6 @@ void Server::handleClientMessage(int i) {
             handlePrivMsg(line, clientFd);
         } else if (line.find("PING") == 0) {
             std::string pong = "PONG " + line.substr(5) + "\n";
-            int j=0;
-              for (std::vector<Channel*>::iterator it = _channels.begin(); it != _channels.end(); ++it) {
-                std::cout << "channel left : " << _channels[j]->getName() << std::endl;
-
-                j++;          }
             send(clientFd, pong.c_str(), pong.size(), 0);
         } else if (line.find("QUIT") == 0) {
             std::string response = "Goodbye!\n";

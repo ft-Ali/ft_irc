@@ -17,7 +17,7 @@ void Channel::manageInvit(Client *client, Channel *channel, bool add){
         return;
     if(add){
         channel->setInvitOnly();
-            if(client->isOperator() && !channel->checkWhiteList(client))
+            if(channel->checkOperatorList(client) && !channel->checkWhiteList(client))
                channel->addToWhiteList(client);
         }
     else{
@@ -30,10 +30,10 @@ void Channel::manageTopic(Channel *channel,bool add){
     if (!channel) 
         return;
     if(add){
-        _editTopic = false;
+        _editTopic = false; 
     }
     else{
-        _editTopic = true;
+        _editTopic = true; // means anyboady can edit topic
     }
 }
 

@@ -42,6 +42,7 @@ class Channel{
 		void undoInvitOnly();
 		
 		std::string getTopic();//-t +t
+		bool getEditTopic() {return this->_editTopic;}
 		void setTopic(std::string &topicName);
 
 		std::string getKey();//-k +k
@@ -83,5 +84,6 @@ class Channel{
 		void manageKey(Channel *channel, std::string &key, bool add);
 		void manageOperator(Channel *channel, Client *client, bool add);
 		void manageSizeChannel(Channel *channel, size_t size,bool add);
+		
 };
 

@@ -25,7 +25,10 @@ Channel::~Channel(){}
 
 void Channel::setInvitOnly(){this->_invitOnly = true;}
 
-void Channel::setTopic(std::string &topicName){this->_topic = topicName;}
+void Channel::setTopic(std::string &topicName){
+	this->_topic.clear();
+	this->_topic = topicName;
+}
 
 void Channel::setKey(std::string &key){this->_key = key;}
 
