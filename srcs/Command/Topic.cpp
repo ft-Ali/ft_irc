@@ -1,4 +1,4 @@
-
+// /topic
 // /topic #channel                  -> return current topic
 // /topic #channel : "new topic"    -> set new topic
 
