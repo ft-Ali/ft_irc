@@ -82,7 +82,7 @@ void Channel::addMode(char mode){
 	}
 	if(mode == 'i' ||mode == 't' ||mode == 'k' ||mode == 'o' ||mode == 'l')
 		_modes.push_back(mode);
-	else
+	// else
 		std::cout << "Invalid mod \n";
 }
 
@@ -197,14 +197,10 @@ void Channel::parseChannelName(){
 
 // Dans la classe Channel
 void Channel::broadcastMessage(Client* sender, const std::string& message) {
-    std::cout << "Membres du channel " << _name << ": ";
-    for (size_t i = 0; i < _members.size(); ++i) {
-        std::cout << _members[i]->getNickName() << " ";
-    }
-    std::cout << std::endl;
-
+    std::cout << "Diffusion du message du client " << sender->getNickName() << " au canal " << _name << std::endl;
     for (size_t i = 0; i < _members.size(); ++i) {
         if (_members[i] != sender) {
+            std::cout << "Envoi à " << _members[i]->getNickName() << ": " << message << std::endl;
             _members[i]->sendMessage(sender->getNickName() + ": " + message);
         }
     }

@@ -1,23 +1,6 @@
 #include "../inc/Server.hpp"
 
 
- void Server::processJoin(std::string name, const std::string& message) {
-    size_t spacePos = message.find(' ', 5);
-    std::string channelName = message.substr(5, spacePos - 5);
-    channelName.erase(channelName.find_last_not_of("\r\n") + 1);
-    Client *client = getClientByName(name);
-      if (!client) {
-        std::cerr << "Error: Client '" << name << "' not found.\n";
-        return;
-    }
-    std::string password;
-    if (spacePos != std::string::npos) {
-        password = message.substr(spacePos + 1);
-        password.erase(password.find_last_not_of("\r\n") + 1);
-    }
-    cmdJoin(channelName, password, client);
-}
-
 void Server::handlePrivMsg(const std::string& line, int clientFd) {
     std::string clientName = getClientByFd(clientFd);  // Récupère le nom du client à partir de son fd
     size_t pos = line.find("PRIVMSG");
@@ -37,6 +20,7 @@ void Server::handlePrivMsg(const std::string& line, int clientFd) {
     if (target[0] == '#' ) {
         Channel* channel = getChannelByName(target);
         Client* client = getClientByName(clientName);  
+        
         if (channel && channel->checkListMembers(client)) {
             std::cout << "Client " << clientName << " envoie un message au channel " << target << ": " << msg << std::endl;
             channel->broadcastMessage(client, msg); 
@@ -137,7 +121,7 @@ void Server::handleNick(int clientFd, const std::string& message) {
     send(clientFd, response.c_str(), response.size(), 0);
 
     std::cout << "Client FD " << clientFd << " changed nickname from "
-              << oldNickname << " to " << newNickname << std::endl;
+            //   << oldNickname << " to " << newNickname << std::endl;
 }
 
 // Function that handles the USER command sent by the client.
@@ -349,7 +333,7 @@ void Server::handleNewConnection() {
     client.revents = 0;
     fds.push_back(client);
 
-    for (std::map<int, std::string>::const_iterator it = _clientUsers.begin(); it != _clientUsers.end(); ++it) {
+    // for (std::map<int, std::string>::const_iterator it = _clientUsers.begin(); it != _clientUsers.end(); ++it) {
     // if (it->second == _clientUsers[clientFd]) {
     //         std::string response = "ERROR: Username already in use.\n";
     //         send(clientFd, response.c_str(), response.size(), 0);
