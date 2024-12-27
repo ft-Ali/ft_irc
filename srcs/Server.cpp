@@ -101,17 +101,18 @@ void Server::handleNick(int clientFd, const std::string& message) {
         send(clientFd, response.c_str(), response.size(), 0);
         return;
     }
-
-
-    // std::string baseNickname = newNickname;
-    // for (std::map<int, std::string>::iterator it = _clientNicks.begin(); it != _clientNicks.end(); ++it) {
-    //     if (newNickname == newNickname != clientFd) {
-    //     std::string response = "ERROR: Nickname already in use.\n";
-    //     send(clientFd, response.c_str(), response.size(), 0);
-    //     return;
-    // }
-
-    // }
+   if(newNickname.empty()) {
+        std::string response = "ERROR: Nickname cannot be empty.\n";
+        send(clientFd, response.c_str(), response.size(), 0);
+        return;
+    }
+    for (std::map<int, std::string>::const_iterator it = _clientNicks.begin(); it != _clientNicks.end(); ++it) {
+        if (it->second == newNickname) {
+            _isConnected = false;
+            return;
+        }
+    }
+    _isConnected = true;
     std::string oldNickname = _clientNicks[clientFd];
     _clientNicks[clientFd] = newNickname;
     _clients[clientFd -4]->setNickname(newNickname);
@@ -285,6 +286,16 @@ void Server::handleClientMessage(int i) {
             handleCap(clientFd, line);
         } else if (line.find("NICK ") == 0) {
             handleNick(clientFd, line);
+            if(_isConnected == false) {
+                std::string response = "ERROR: Nickname already in use.\n";
+                send(clientFd, response.c_str(), response.size(), 0);
+                close(clientFd);
+                _authenticatedClients.erase(clientFd);
+                _clientNicks.erase(clientFd);
+                _clientRegistered.erase(clientFd);
+                fds.erase(fds.begin() + i);
+                return;
+            }
         } else if (line.find("USER ") == 0) {
             handleUser(clientFd);
         } else if (line.find("JOIN") == 0) {
