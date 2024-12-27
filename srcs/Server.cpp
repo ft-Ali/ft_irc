@@ -1,6 +1,5 @@
 #include "../inc/Server.hpp"
 
-
 void Server::handlePrivMsg(const std::string& line, int clientFd) {
     std::string clientName = getClientByFd(clientFd);  // Récupère le nom du client à partir de son fd
     size_t pos = line.find("PRIVMSG");
@@ -19,21 +18,23 @@ void Server::handlePrivMsg(const std::string& line, int clientFd) {
 
     if (target[0] == '#' ) {
         Channel* channel = getChannelByName(target);
-        Client* client = getClientByName(clientName);  
-        
+        Client* client = getClientByName(clientName);
         if (channel && channel->checkListMembers(client)) {
             std::cout << "Client " << clientName << " envoie un message au channel " << target << ": " << msg << std::endl;
-            channel->broadcastMessage(client, msg); 
+            channel->broadcastMessage(client, msg);
         } else {
             std::string response = ":server_name 403 " + clientName + " " + target + " :No such channel\r\n";
             send(clientFd, response.c_str(), response.size(), 0);
         }
-    } else {  
-        Client* targetClient = getClientByName(target);  // Récupère le client cible
+    } else {
+        Client* targetClient = getClientByName(target);
         if (targetClient) {
-            std::string response = ":" + clientName + " PRIVMSG " + target + " :" + msg + "\r\n";
-            send(targetClient->getFd(), response.c_str(), response.size(), 0);
-        } else {
+        std::string response = ":" + clientName + " PRIVMSG " + target + " " + msg + "\r\n";
+        send(targetClient->getFd(), response.c_str(), response.size(), 0);
+
+        // std::string windowCommand = ":server_name NOTICE " + targetClient->getNickName() + " :/window goto " + targetClient->getNickName() + "\r\n";
+        // send(targetClient->getFd(), windowCommand.c_str(), windowCommand.size(), 0);
+     } else {
             std::string response = ":server_name 401 " + clientName + " " + target + " :No such nick/channel\r\n";
             send(clientFd, response.c_str(), response.size(), 0);
         }
@@ -103,17 +104,18 @@ void Server::handleNick(int clientFd, const std::string& message) {
         send(clientFd, response.c_str(), response.size(), 0);
         return;
     }
-
-
-    // std::string baseNickname = newNickname;
-    // for (std::map<int, std::string>::iterator it = _clientNicks.begin(); it != _clientNicks.end(); ++it) {
-    //     if (newNickname == newNickname != clientFd) {
-    //     std::string response = "ERROR: Nickname already in use.\n";
-    //     send(clientFd, response.c_str(), response.size(), 0);
-    //     return;
-    // }
-
-    // }
+   if(newNickname.empty()) {
+        std::string response = "ERROR: Nickname cannot be empty.\n";
+        send(clientFd, response.c_str(), response.size(), 0);
+        return;
+    }
+    for (std::map<int, std::string>::const_iterator it = _clientNicks.begin(); it != _clientNicks.end(); ++it) {
+        if (it->second == newNickname) {
+            _isConnected = false;
+            return;
+        }
+    }
+    _isConnected = true;
     std::string oldNickname = _clientNicks[clientFd];
     _clientNicks[clientFd] = newNickname;
     _clients[clientFd -4]->setNickname(newNickname);
@@ -287,6 +289,16 @@ void Server::handleClientMessage(int i) {
             handleCap(clientFd, line);
         } else if (line.find("NICK ") == 0) {
             handleNick(clientFd, line);
+            if(_isConnected == false) {
+                std::string response = "ERROR: Nickname already in use.\n";
+                send(clientFd, response.c_str(), response.size(), 0);
+                close(clientFd);
+                _authenticatedClients.erase(clientFd);
+                _clientNicks.erase(clientFd);
+                _clientRegistered.erase(clientFd);
+                fds.erase(fds.begin() + i);
+                return;
+            }
         } else if (line.find("USER ") == 0) {
             handleUser(clientFd);
         } else if (line.find("JOIN") == 0) {
@@ -299,8 +311,8 @@ void Server::handleClientMessage(int i) {
             std::string pong = "PONG " + line.substr(5) + "\n";
             int j=0;
               for (std::vector<Channel*>::iterator it = _channels.begin(); it != _channels.end(); ++it) {
-                std::cout << "channel left : " << _channels[j]->getName() << std::endl;  
-             
+                std::cout << "channel left : " << _channels[j]->getName() << std::endl;
+
                 j++;          }
             send(clientFd, pong.c_str(), pong.size(), 0);
         } else if (line.find("QUIT") == 0) {
@@ -313,6 +325,7 @@ void Server::handleClientMessage(int i) {
             fds.erase(fds.begin() + i);
             return;
         }
+
     }
 }
 
@@ -341,7 +354,7 @@ void Server::handleNewConnection() {
     //         fds.pop_back();
     //         return ;
     //     }
-    // }
+    }
 
 
     _clientNicks[clientFd] = "";
