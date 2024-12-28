@@ -23,13 +23,25 @@ Channel::~Channel(){}
 
 /**************************SETTERS*******************************/
 
-void Channel::setInvitOnly(){this->_invitOnly = true;}
+void Channel::setInvitOnly(bool actived){
+	if(actived)
+		_invitOnly = true;
+	else
+		_invitOnly = false;
+}
 
 void Channel::setTopic(std::string &topicName){this->_topic = topicName;}
 
 void Channel::setKey(std::string &key){this->_key = key;}
 
-void Channel::setmaxMembers(size_t size){this->_maxMembers = size;}
+void Channel::setMaxMembers(size_t size){this->_maxMembers = size;}
+
+void Channel::setTopicMode(bool actived){
+	if(actived)
+		_editTopic = true;
+	else
+		_editTopic = false;
+}
 
 // void Channel::setOperator(const std::vector<Client*>& vec, Client *client){}
 
@@ -76,25 +88,24 @@ void Channel::addMember(std::vector<Client*> &vec, Client *client){
 		vec.push_back(client);
 }
 
-void Channel::addMode(char mode, char sign){
-	std::string fullMode;
-	fullMode += sign;
-	fullMode += mode;
-	if(sign != '+' || sign != '-')
-		return ;
-	std::cout << "ici \n";
-	if(mode!='t' ||mode!='k' ||mode!='o' ||mode!='l' ||mode!='i')
-		return ;
-	std::cout << "ici ou la\n";
-	
-	for(size_t i = 0; i < _modes.size(); ++i){
-		if(_modes[i].find(fullMode))
-			return ;
-	}
-	std::cout << "mode : " << fullMode << std::endl;
-	_modes.push_back(fullMode);
-	
+void Channel::addMode(char mode, char sign) {
+    if (sign != '+' && sign != '-')
+        return;
+    if (mode != 't' && mode != 'k' && mode != 'o' && mode != 'l' && mode != 'i')
+        return;
+
+    std::string fullMode = std::string(1, sign) + mode;
+    for (std::vector<std::string>::iterator it = _modes.begin(); it != _modes.end(); ++it) {
+        if ((*it)[1] == mode) { 
+            _modes.erase(it);
+            break;
+        }
+    }
+
+    // Ajoute le mode avec le nouveau signe
+    _modes.push_back(fullMode);
 }
+
 
 void Channel::addToWhiteList( Client *client){
 	addMember(_whiteList, client);
@@ -109,6 +120,15 @@ void Channel::addListMember(Client *client){
 
 void Channel::setOperator(Client *client){
 	addMember(_operatorList, client);
+}
+
+void Channel::setNewOperator(){
+	if(_members.size() >=1){
+		std::vector<Client*>::iterator it = _members.begin();
+		if(!checkOperatorList(*it))
+			setOperator(*it);
+		std::cout << "new op :" << *it << std::endl;
+	}
 }
 /*******************************REMOVE***************************/
 void Channel::clearVec(std::vector<Client*> &vec, Channel *channel){

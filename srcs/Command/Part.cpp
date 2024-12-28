@@ -43,6 +43,7 @@ void Server::cmdPart(std::string& msg, std::vector<std::string>& channelNames, C
         }
         channel->leaveChannel(client);
         client->removeJoinedChannel(channel);
+        channel->setNewOperator();
         if (channel->size() == 0) {
             removeEmptyChannel(channel);
         }

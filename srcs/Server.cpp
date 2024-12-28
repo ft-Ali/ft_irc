@@ -5,7 +5,7 @@ void Server::handlePrivMsg(const std::string& line, int clientFd) {
     size_t pos = line.find("PRIVMSG");
     std::string message = line.substr(pos + 8);
     size_t spacePos = message.find(' ');
-
+    
     if (spacePos == std::string::npos) {
         std::string response = "ERROR: Invalid PRIVMSG format.\n";
         send(clientFd, response.c_str(), response.size(), 0);
@@ -20,7 +20,7 @@ void Server::handlePrivMsg(const std::string& line, int clientFd) {
         Channel* channel = getChannelByName(target);
         Client* client = getClientByName(clientName);
         if (channel && channel->checkListMembers(client)) {
-            std::cout << "Client " << clientName << " envoie un message au channel " << target << ": " << msg << std::endl;
+            // std::cout << "Client " << clientName << " envoie un message au channel " << target << ": " << msg << std::endl;
             channel->broadcastMessage(client, msg);
         } else {
             std::string response = ":server_name 403 " + clientName + " " + target + " :No such channel\r\n";

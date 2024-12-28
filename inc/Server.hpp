@@ -59,6 +59,7 @@ class Server {
 		void processJoin(std::string Client, const std::string& message);
 		void closeServer();
 		void handleCap(int clientFd, const std::string& message);
+		void setNickName(std::string name, int fd){ this->_clientNicks[fd-4] = name;}
 		/************************************COMMAND********************************************/
 		void cmdJoin(std::string &nameChannel, std::string &key, Client *client);
 		bool channelExist(const std::string& name);
@@ -72,6 +73,12 @@ class Server {
 		void removeEmptyChannel(Channel* channel);
 		void handlePrivMsg(const std::string& line, int clientFd);
 		void manageMode(std::string &mode, Client *client);
+		void handleOperatorMode(char sign,  std::string &param, Client *client, Channel *channel);
+		void sendClientResponse(Client *client, const std::string &response);
+		void handleLimitMode(char sign, const std::string &param, Client *client, Channel *channel);
+		void handleKeyMode(char sign, std::string &param, Client *client, Channel *channel); 
+		void handleModeActions(const std::string &mode, std::string &param, Client *client, Channel *channel); 
+		void handleBasicMode(char mode, char sign, Client *client, Channel *channel);
 		/***************************************************************************************/
 		// void listen();
 		// void accept();

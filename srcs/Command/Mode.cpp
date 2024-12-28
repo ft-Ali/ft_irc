@@ -1,166 +1,129 @@
 #include "../../inc/Server.hpp"
-//  MODE - Changer le mode du channel :
-// — i : Définir/supprimer le canal sur invitation uniquement
-// — t : Définir/supprimer les restrictions de la commande TOPIC pour les opérateurs de canaux
-// — k : Définir/supprimer la clé du canal (mot de passe)
+
+// MODE - Changer le mode du channel :
+// — i : Définir/supprimer le canal sur invitation uniquement good
+// — t : Définir/supprimer les restrictions de la commande TOPIC pour les opérateurs de canaux a check
+// — k : Définir/supprimer la clé du canal (mot de passe) good
 // — o : Donner/retirer le privilège de l’opérateur de canal
 // — l : Définir/supprimer la limite d’utilisateurs pour le canal
 
-void Server::manageMode(std::string &cmd, Client *client){
-
-    std::vector<std::string> cmdMode = splitArg(cmd, ' '); 
-    int i = 0;
-    std::string mode;
-    std::string param;
+void Server::manageMode(std::string &cmd, Client *client) {
+    std::vector<std::string> cmdMode = splitArg(cmd, ' ');
+    if (cmdMode.size() < 2) {
+        sendClientResponse(client, ":server_name 461 " + client->getNickName() + " MODE :Not enough parameters\r\n");
+        return;
+    }
 
     Channel *channel = getChannelByName(cmdMode[1]);
-    if(!channel){
-        std::cout << "yuyuuyuy \n";
-        return ;
+    if (!channel) {
+        sendClientResponse(client, ":server_name 403 " + cmdMode[1] + " :No such channel\r\n");
+        return;
     }
-    for(std::vector<std::string>::iterator it = cmdMode.begin(); it != cmdMode.end();++it){
-        if(i==2)
-            mode = cmdMode[2];
-        if(i==3)
-            param = cmdMode[3];
-    i++;
-    }
-    if(mode.empty()){
-        std::cout << "MODE " << channel->getName() << ": " << channel->getModes() << std::endl;
-    // return ;    
-    }
-       for(size_t i = 1; i < mode.size();++i){
-                std::cout << "yuyuuyuyaaaa \n";
 
-        char sign = mode[0];
-        char modeFound;
-        modeFound = mode[i];
+    std::string mode = (cmdMode.size() > 2) ? cmdMode[2] : "";
+    std::string param = (cmdMode.size() > 3) ? cmdMode[3] : "";
 
-        if(param.empty()){
-            channel->whichMode(modeFound, sign, client, channel);
-             if(sign == '-' && modeFound == 'l')
-                    channel->manageSizeChannel(channel, 0, false);
-            }
-        else if(!param.empty()){
-            if(modeFound == '+' && sign == 'k')
-                channel->manageKey(channel, param, true);
-            if(modeFound == 'l'){
-                std::stringstream ss(param);
-                size_t value = 0;
-                ss>>value;
-                if(value > 500){
-                    std::string response = ":server_name 501 " + client->getNickName()+ " " + channel->getName() + " :Cannot join channel(+l)\r\n";
-                    send(client->getFd(), response.c_str(), response.size(), 0);
-                }
-                else if(sign == '+')
-                    channel->manageSizeChannel(channel, value, true);
-            }
-            if(modeFound == 'o'){
-                Client *newClient = getClientByName(param);
-                if(!newClient)
-                    continue;
-                if(sign == '+')
-                    channel->manageOperator(channel, newClient, true);
-                if(sign == '-')
-                    channel->manageOperator(channel, newClient, false); 
-            }
+    if (mode.empty()) {
+        sendClientResponse(client, "MODE " + channel->getName() + ": " + channel->getModes() + "\r\n");
+        return;
+    }
+
+    handleModeActions(mode, param, client, channel);
+}
+
+void Server::handleModeActions(const std::string &mode, std::string &param, Client *client, Channel *channel) {
+    char sign = mode[0];
+    if (sign != '+' && sign != '-') {
+        sendClientResponse(client, ":server_name 501 " + client->getNickName() + " :Unknown MODE flag\r\n");
+        return;
+    }
+
+    for (size_t i = 1; i < mode.size(); ++i) {
+        char modeFlag = mode[i];
+        switch (modeFlag) {
+            case 'i':
+            case 't':
+                handleBasicMode(modeFlag, sign, client, channel);
+                break;
+            case 'k':
+                handleKeyMode(sign, param, client, channel);
+                break;
+            case 'l':
+                handleLimitMode(sign, param, client, channel);
+                break;
+            case 'o':
+                handleOperatorMode(sign, param, client, channel);
+                break;
+            default:
+                sendClientResponse(client, ":server_name 501 " + client->getNickName() + " :Unknown MODE flag\r\n");
+                return;
         }
-    channel->addMode(modeFound, sign);
     }
 }
 
-void Channel::whichMode(char mode, char sign, Client *client, Channel *channel){
-   
-    switch (mode)
-    {
-    case 'i' :
-        if(sign == '+')
-            manageInvit(client, channel, true);
-        else if(sign == '-')
-            manageInvit(client,channel,false);
-        break;
-    case 't' :
-        if(sign == '+')
-            manageTopic(channel, true);
-        else if(sign == '-')
-            manageTopic(channel,false);
-        break;
-    case 'k' :
-        if(sign == '-')
-            manageKey(channel,"",false);
-        break;
-    case 'o' :
-        break;
-    case 'l' :
-        break;
-    default:
-        std::string response = ":server_name 501 " + client->getNickName()+ " " + channel->getName() + " :Unknown MODE flag\r\n";
-        send(client->getFd(), response.c_str(), response.size(), 0);
-        return ;
-    }
+void Server::handleBasicMode(char mode, char sign, Client *client, Channel *channel) {
+    (void)client;
+    if (mode == 'i' && sign == '+') 
+        channel->setInvitOnly(true);
+    if (mode == 'i' && sign == '-') 
+        channel->setInvitOnly(false);
+    if (mode == 't' && sign == '+') 
+        channel->setTopicMode(true);
+    if (mode == 't' && sign == '-') 
+        channel->setTopicMode(false);
     channel->addMode(mode, sign);
 }
 
-void Channel::manageInvit(Client *client, Channel *channel, bool add){
-    if (!channel || !client) 
-        return;
-    if(add){
-        channel->setInvitOnly();
-            if(channel->checkOperatorList(client) && !channel->checkWhiteList(client))
-               channel->addToWhiteList(client);
-        }
-    else{
-        channel->undoInvitOnly();
-        clearVec(_whiteList, channel);
-    }
-}
-
-void Channel::manageTopic(Channel *channel,bool add){
-    if (!channel) 
-        return;
-    if(add){
-        _editTopic = false;
-    }
-    else{
-        _editTopic = true;
-    }
-}
-
-void Channel::manageKey(Channel *channel, std::string newKey, bool add){
-    if (!channel) 
-        return;
-    if(!newKey.empty() && add){
+void Server::handleKeyMode(char sign, std::string &param, Client *client, Channel *channel) {
+    if (sign == '+' && !param.empty()) {
+        channel->setKey(param);
+    } else if (sign == '-') {
         channel->undoKey();
-        channel->setKey(newKey);
+    } else {
+        sendClientResponse(client, ":server_name 461 " + client->getNickName() + " MODE :Key parameter required\r\n");
     }
-    else{
-        channel->undoKey();
-    }
+    channel->addMode('k', sign);
 }
 
-void Channel::manageOperator(Channel *channel, Client *client, bool add){
-    if (!channel || !client) 
-        return;
-    if(add){
-        channel->setOperator(client);
-    }
-    else{
-        if (channel->getSizeVec(_operatorList) == 1) { 
-            std::string response = ":server_name 485 " + client->getNickName() +
-                                   " " + client->getNickName() + " :Cannot remove the last operator\r\n";
-            send(client->getFd(), response.c_str(), response.size(), 0);
+void Server::handleLimitMode(char sign, const std::string &param, Client *client, Channel *channel) {
+    if (sign == '+' && !param.empty()) {
+        size_t limit = 0;
+        std::stringstream ss(param);
+        if (!(ss >> limit) || limit == 0 || limit > 500) {
+            sendClientResponse(client, ":server_name 501 " + client->getNickName() + " :Invalid channel size\r\n");
             return;
         }
-        channel->removeOperator(client);
+        channel->setMaxMembers(limit);
+       std::cout << "size " << channel->getMaxMembers() << std::endl;;
+    } else if (sign == '-') {
+        channel->setMaxMembers(200); // Default size
+    } else {
+        sendClientResponse(client, ":server_name 461 " + client->getNickName() + " MODE :Limit parameter required\r\n");
     }
+    channel->addMode('l', sign);
 }
 
-void Channel::manageSizeChannel(Channel *channel, size_t size, bool add){
-   if (!channel) 
+void Server::handleOperatorMode(char sign, std::string &param, Client *client, Channel *channel) {
+    Client *targetClient = getClientByName(param);
+    if (!targetClient) {
+        sendClientResponse(client, ":server_name 401 " + client->getNickName() + " " + param + " :No such nick/channel\r\n");
         return;
-    if(add){
-        channel->setmaxMembers(size);
     }
-    else
-        channel->setmaxMembers(200);
+
+    if (sign == '+' && !channel->checkOperatorList(targetClient)) {
+        channel->setOperator(targetClient);
+    } else if (sign == '-') {
+        if (channel->getSizeOpeList() == 1) {
+            sendClientResponse(client, ":server_name 485 " + client->getNickName() + " :Cannot remove the last operator\r\n");
+            return;
+        }
+        channel->removeOperator(targetClient);
+    }
+    if(channel->checkOperatorList(targetClient))
+        std::cout << "is in \n";
+    channel->addMode('o', sign);
+}
+
+void Server::sendClientResponse(Client *client, const std::string &response) {
+    send(client->getFd(), response.c_str(), response.size(), 0);
 }
