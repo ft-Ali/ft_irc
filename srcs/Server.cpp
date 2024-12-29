@@ -418,3 +418,11 @@ std::string Server::getClientByFd(const int &clientFd){
             clientName = it->second;
     return clientName;
 }
+
+Client *Server::getClientByFds(const int &clientFd){
+	for (size_t i = 0; i < _clients.size(); ++i) {
+        if (_clients[i]->getFd() == clientFd)
+            return _clients[i];
+    }
+	return NULL;
+}

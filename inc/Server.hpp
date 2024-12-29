@@ -67,6 +67,7 @@ class Server {
 		Channel *getChannelByName(std::string &name);
 		void    cmdPart(std::string &message, std::vector<std::string>&arg ,Client *client);
 		Client *getClientByName(std::string &name);
+		Client *getClientByFds(const int &ClientFd);
 		std::string getClientByFd(const int &ClientFd);
 		void processPart(Client *client, std::string &command);
 		void removeEmptyChannel(Channel* channel);
@@ -79,7 +80,7 @@ class Server {
 		// void read();
 		// void send();
 		// void close();
-		void    sendTopic(int clientFd, std::string channelName, std::string topic);
+        void sendTopic(Client *client, Channel *channel);
 };
 std::vector<std::string> splitArg(const std::string &str, char delimiter);
 void    sendMessage(int fd, const std::string &msg);

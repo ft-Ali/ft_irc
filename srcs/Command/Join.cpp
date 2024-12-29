@@ -60,6 +60,7 @@ void Server::handleSingleJoin(std::string &channelName, std::string &key, Client
 
         _channels.push_back(channel);
         client->setJoinedChannels(channel);
+        client->setCurrentChannel(channel);
     } else {
         // std::cout << "Channel " << channelName << " join.\n";
         channel = getChannelByName(channelName);
@@ -109,6 +110,7 @@ void	Server::checkRestriction(Channel &channel, Client *client, std::string &key
     }
 	channel.addListMember(client);
     client->setJoinedChannels(&channel);
+    client->setCurrentChannel(&channel);
 }
 
 Channel *Server::getChannelByName(std::string &name){

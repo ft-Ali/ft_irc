@@ -20,7 +20,15 @@
 #include <stdbool.h>
 #include "Channel.hpp"
 #pragma once
+
 class Channel;
+
+enum WindowType {
+    CHANNEL,
+    STATUS,
+    PRIVATE_MESSAGE,
+    NONE // Default or undefined state
+};
 
 class Client {
     private:
@@ -33,12 +41,14 @@ class Client {
         bool _isRegistered;
         bool _isConnected;                            // Client connection status
         std::vector<Channel*> _joinedChannels;
+        Channel *_currentChannel;
+        WindowType _currentWindowType;
 	public:
         Client();
-		Client(int fd, int clientPort, std::string clientIp, std::string user, std::string nick): 
-            _fd(fd), _port(clientPort), _ip(clientIp), _username(user), _nickname(nick), _isAuthentificated(false), _isRegistered(false), _isConnected(false) {};
+        Client(int fd, int clientPort, std::string clientIp, std::string user, std::string nick): 
+                _fd(fd), _port(clientPort), _ip(clientIp), _username(user), _nickname(nick), _isAuthentificated(false), _isRegistered(false), _isConnected(false), _currentChannel(NULL), _currentWindowType(NONE) {}
         ~Client() {}
-        Client(Client const &src){*this = src;}
+        Client(Client const &src) {*this = src;}
 	    Client &operator=(Client const &src);
 
         //---------------//Getters
@@ -50,6 +60,8 @@ class Client {
 	    std::string getIpaddr() { return _ip; }
         std::string getUserName() { return _username; }
         std::vector<Channel*> getJoinedChannels() { return _joinedChannels; }
+        Channel     *getCurrentChannel() { return _currentChannel; }
+        WindowType  getWindowType() const { return _currentWindowType; }
 
 	    //---------------//Setters
 	    void setFd(int fd) { _fd = fd; }
@@ -60,6 +72,8 @@ class Client {
 	    void setConnected(bool value) { _isConnected = value; }
         void setAuthentificated(bool value) { _isAuthentificated = value; }
         void setJoinedChannels(Channel *joinedChannel) { _joinedChannels.push_back(joinedChannel); }
+        void setCurrentChannel(Channel* channel) { _currentChannel = channel; }
+        void setWindowType(WindowType windowType) { _currentWindowType = windowType; }
 
 	    //---------------//Methods
         void print();
