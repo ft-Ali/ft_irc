@@ -111,6 +111,7 @@ void	Server::checkRestriction(Channel &channel, Client *client, std::string &key
 	channel.addListMember(client);
     client->setJoinedChannels(&channel);
     client->setCurrentChannel(&channel);
+
 }
 
 Channel *Server::getChannelByName(std::string &name){

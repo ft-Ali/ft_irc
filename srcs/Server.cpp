@@ -287,9 +287,10 @@ void Server::handleClientMessage(int i) {
         else if (line.find("CAP") == 0) {
             handleCap(clientFd, line);
         }
-        else if (line.find("TOPIC") == 0) {
+       else if (line.find("TOPIC") == 0) {
             handleTopic(clientFd, line);
-        } else if (line.find("NICK ") == 0) {
+        }
+        else if (line.find("NICK ") == 0) {
             handleNick(clientFd, line);
             if(_isConnected == false) {
                 std::string response = "ERROR: Nickname already in use.\n";

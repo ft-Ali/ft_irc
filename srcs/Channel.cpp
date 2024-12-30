@@ -26,7 +26,6 @@ Channel::~Channel(){}
 void Channel::setInvitOnly(){this->_invitOnly = true;}
 
 void Channel::setTopic(std::string &topicName){
-	this->_topic.clear();
 	this->_topic = topicName;
 }
 
@@ -103,6 +102,7 @@ void Channel::addListMember(Client *client){
 void Channel::setOperator(Client *client){
 	addMember(_operatorList, client);
 }
+
 /*******************************REMOVE***************************/
 void Channel::clearVec(std::vector<Client*> &vec, Channel *channel){
 	 for (size_t i = 0; i < channel->getSizeVec(vec); ++i) {
@@ -208,3 +208,4 @@ void Channel::broadcastMessage(Client* sender, const std::string& msg) {
         }
     }
 }
+
