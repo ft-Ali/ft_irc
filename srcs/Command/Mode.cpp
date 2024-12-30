@@ -9,11 +9,6 @@
 
 void Server::manageMode(std::string &cmd, Client *client) {
     std::vector<std::string> cmdMode = splitArg(cmd, ' ');
-    if (cmdMode.size() < 2) {
-        sendClientResponse(client, ":server_name 461 " + client->getNickName() + " MODE :Not enough parameters\r\n");
-        return;
-    }
-
     Channel *channel = getChannelByName(cmdMode[1]);
     if (!channel) {
         sendClientResponse(client, ":server_name 403 " + cmdMode[1] + " :No such channel\r\n");
@@ -24,11 +19,13 @@ void Server::manageMode(std::string &cmd, Client *client) {
     std::string param = (cmdMode.size() > 3) ? cmdMode[3] : "";
 
     if (mode.empty()) {
-        sendClientResponse(client, "MODE " + channel->getName() + ": " + channel->getModes() + "\r\n");
+        sendClientResponse(client, ":server_name 403 " + channel->getName() + ": " + channel->getModes() + "\r\n");
         return;
     }
 
     handleModeActions(mode, param, client, channel);
+    sendClientResponse(client, ":server_name NOTICE " + channel->getName() + ": " + channel->getModes() + "\r\n");
+
 }
 
 void Server::handleModeActions(const std::string &mode, std::string &param, Client *client, Channel *channel) {
@@ -94,9 +91,8 @@ void Server::handleLimitMode(char sign, const std::string &param, Client *client
             return;
         }
         channel->setMaxMembers(limit);
-       std::cout << "size " << channel->getMaxMembers() << std::endl;;
     } else if (sign == '-') {
-        channel->setMaxMembers(200); // Default size
+        channel->setMaxMembers(200);
     } else {
         sendClientResponse(client, ":server_name 461 " + client->getNickName() + " MODE :Limit parameter required\r\n");
     }
@@ -106,7 +102,6 @@ void Server::handleLimitMode(char sign, const std::string &param, Client *client
 void Server::handleOperatorMode(char sign, std::string &param, Client *client, Channel *channel) {
     Client *targetClient = getClientByName(param);
     if (!targetClient) {
-        sendClientResponse(client, ":server_name 401 " + client->getNickName() + " " + param + " :No such nick/channel\r\n");
         return;
     }
 
@@ -119,11 +114,9 @@ void Server::handleOperatorMode(char sign, std::string &param, Client *client, C
         }
         channel->removeOperator(targetClient);
     }
-    if(channel->checkOperatorList(targetClient))
-        std::cout << "is in \n";
     channel->addMode('o', sign);
 }
 
-void Server::sendClientResponse(Client *client, const std::string &response) {
+void sendClientResponse(Client *client, const std::string &response) {
     send(client->getFd(), response.c_str(), response.size(), 0);
 }

@@ -3,12 +3,13 @@
 
 // exemple command plusieur channel JOIN #channel1,#channel2,#channel3 key1,,key3
  void Server::processJoin(std::string name, const std::string& message) {
-    size_t spacePos = message.find(' ', 5);
+    size_t spacePos = message.find(' ');
     std::string channelName = message.substr(5, spacePos - 5);
     channelName.erase(channelName.find_last_not_of("\r\n") + 1);
+
     Client *client = getClientByName(name);
     if (!client) {
-        std::cerr << "Error: Client '" << name << "' not found.\n";
+     sendClientResponse(client, ":server_name 403 " + name + " :No such client\r\n");
         return;
     }
     
@@ -26,11 +27,6 @@ void	Server::cmdJoin(std::string &Channelname, std::string &key, Client *client)
 	std::vector<std::string> channels = splitArg(Channelname, ',');
 	std::vector<std::string> keyLists = splitArg(key, ',');
 	
-	// if (channels.size() != keyLists.size()) {
-    //     std::cout << "Error: Number of channels and keys do not match.\n";
-    //     return;
-    // }
-	
 	for(size_t i = 0; i < channels.size(); ++i){
 		std::string channelName = channels[i];
 		if (i < keyLists.size())
@@ -40,13 +36,15 @@ void	Server::cmdJoin(std::string &Channelname, std::string &key, Client *client)
 }
 
 void Server::handleSingleJoin(std::string &channelName, std::string &key, Client *client) {
-    if (!client) {
-        std::cerr << "Error: Null client passed to handleSingleJoin.\n";
+    if (!client)
+        return;
+    if(channelName.empty() || channelName.size() == 1) {
+           sendClientResponse(client, ":server_name 403 " + channelName + " :No such channel\r\n");
         return;
     }
+
     Channel* channel = NULL;
     if (!channelExist(channelName)) {
-        // std::cout << "Channel '" << channelName << "' created and joined.\n";
         if (key.empty())
             channel = new Channel(client, channelName);
         else
@@ -56,14 +54,17 @@ void Server::handleSingleJoin(std::string &channelName, std::string &key, Client
             std::cerr << "Error: Failed to create channel.\n";
             return;
         }
-
+        if (!channel->parseChannelName(client)){
+		    delete channel;
+            return ;
+        }
         _channels.push_back(channel);
         client->setJoinedChannels(channel);
     } else {
         // std::cout << "Channel " << channelName << " join.\n";
         channel = getChannelByName(channelName);
         if (!channel) {
-            std::cerr << "Error: Failed to retrieve existing channel.\n";
+            sendClientResponse(client, ":server_name 403 " + channelName + " :No such channel\r\n");
             return;
         }
         checkRestriction(*channel, client, key);
@@ -101,11 +102,6 @@ void	Server::checkRestriction(Channel &channel, Client *client, std::string &key
             return;
         }
     }
-    // if (channel.checkListMembers(client)) {
-    //         std::string windowCommand = ":server_name NOTICE " + client->getNickName() + " :/window goto " + channel.getName() + "\r\n";
-    //         send(client->getFd(), windowCommand.c_str(), windowCommand.size(), 0);
-    //     return;
-    // }
 	channel.addListMember(client);
     client->setJoinedChannels(&channel);
 }
@@ -126,6 +122,7 @@ bool Server::channelExist(const std::string& name) {
     }
     return false;
 }
+
 std::vector<std::string> splitArg(const std::string &str, char delimiter){
 	std::vector<std::string> result;
 	std::string name;

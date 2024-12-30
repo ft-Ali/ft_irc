@@ -29,8 +29,6 @@ void Server::cmdPart(std::string& msg, std::vector<std::string>& channelNames, C
 (void)msg;
         Channel* channel = getChannelByName(*it);
         if (!channel) {
-            // std::string response = ":server_name 403 " + client->getNickName() + " " + *it + " :No such channel\r\n";
-            // send(client->getFd(), response.c_str(), response.size(), 0);
             continue;
         }
         if (!channel->checkListMembers(client)) {

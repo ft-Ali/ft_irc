@@ -72,19 +72,18 @@ class Server {
 		void processPart(Client *client, std::string &command);
 		void removeEmptyChannel(Channel* channel);
 		void handlePrivMsg(const std::string& line, int clientFd);
+		void handleKick(Client *client, std::string command);
+		void handleInvit(Client *client, std::string command);
+		/*----------------------------------MODE---------------------------------------------*/
 		void manageMode(std::string &mode, Client *client);
 		void handleOperatorMode(char sign,  std::string &param, Client *client, Channel *channel);
-		void sendClientResponse(Client *client, const std::string &response);
 		void handleLimitMode(char sign, const std::string &param, Client *client, Channel *channel);
 		void handleKeyMode(char sign, std::string &param, Client *client, Channel *channel); 
 		void handleModeActions(const std::string &mode, std::string &param, Client *client, Channel *channel); 
 		void handleBasicMode(char mode, char sign, Client *client, Channel *channel);
+	
 		/***************************************************************************************/
-		// void listen();
-		// void accept();
-		// void read();
-		// void send();
-		// void close();
+
 };
 std::vector<std::string> splitArg(const std::string &str, char delimiter);
-void    sendMessage(int fd, const std::string &msg);
+void sendClientResponse(Client *client, const std::string &response);
