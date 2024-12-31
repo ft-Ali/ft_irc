@@ -51,12 +51,14 @@ void    Server::handleTopic(int clientFd, std::string message) {
 
         if ((!prompt_channelName.empty() && newTopic.empty()) || (prompt_channelName.empty() && newTopic.empty())) {
             if (currentChannel->getTopic().empty()) {
-                std::string response = ":server_name 331 " + client->getNickName() + " " + currentChannel->getName() + " :No topic is set" + "\r\n";
+                // std::string response = ":server_name 331 " + client->getNickName() + " " + currentChannel->getName() + " :No topic is set" + "\r\n";
+                std::string response = "-!- No topic set for " + currentChannel->getName() + "\r\n";
                 send(client->getFd(), response.c_str(), response.size(), 0);
                 throw std::invalid_argument("No topic set for given channel");
             }
             else {
-                std::string response = ":server_name 332 " + client->getNickName() + " " + currentChannel->getName() + " " + currentChannel->getTopic() + "\r\n";
+                // std::string response = ":server_name 332 " + client->getNickName() + " " + currentChannel->getName() + " " + currentChannel->getTopic() + "\r\n";
+                std::string response = "-!- Topic for " + currentChannel->getName() + ": " + currentChannel->getTopic();
                 send(client->getFd(), response.c_str(), response.size(), 0);
             }
         }
@@ -71,13 +73,15 @@ void    Server::handleTopic(int clientFd, std::string message) {
             }
             currentChannel->setTopic(newTopic);
             
-            std::string response = ":" + client->getNickName() + "!" + client->getUserName() + "server_name" + " TOPIC " + currentChannel->getName() + " :" + newTopic + "\r\n";
+            // std::string response = ":" + client->getNickName() + "!" + client->getUserName() + "server_name" + " TOPIC " + currentChannel->getName() + " :" + newTopic + "\r\n";
+            std::string response = "-!- " + client->getNickName() + "changed the topic of " + currentChannel->getName() +"\r\n";
             send(client->getFd(), response.c_str(), response.size(), 0);
             currentChannel->broadcastMessage(client, response);
         }
         else if (currentChannel->getEditTopic() == false) {
 
-            std::string response = ":server_name 482 " + client->getNickName() + " " + currentChannel->getName() + " :You're not a channel operator\r\n";
+            // std::string response = ":server_name 482 " + client->getNickName() + " " + currentChannel->getName() + " :You're not a channel operator\r\n";
+            std::string response = currentChannel->getName() + " :You're not a channel operator\r\n";
             send(client->getFd(), response.c_str(), response.size(), 0);
             throw std::invalid_argument("You're not a channel operator");
         }
