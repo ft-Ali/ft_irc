@@ -34,6 +34,7 @@ class Server {
 		std::map<int, bool> _clientRegistered; //-> map of client fds and registration status
 		std::map<int, std::string> _clientUsers; //-> map of client fds and users
 		std::map<int, std::string> _clientNicks; //-> map of client fds and nicks
+		std::string _ip;
 
 	public:
 		Server(int port, std::string password) : _port(port), _password(password), _serSocketFd(-1), _isConnected(false), fds(0) {
@@ -48,6 +49,12 @@ class Server {
 			instance = NULL;
 
 		};
+		static Server* getInstance() {
+			if (instance == NULL) {
+				throw std::runtime_error("Server instance is not created yet.");
+			}
+			return instance;
+    	}
 		void serverInit();
 		void serverLoop();
 		void handleNewConnection();
@@ -71,13 +78,19 @@ class Server {
 		void processPart(Client *client, std::string &command);
 		void removeEmptyChannel(Channel* channel);
 		void handlePrivMsg(const std::string& line, int clientFd);
-		void sendCloseWindowCommand(int clientFd);
 		/***************************************************************************************/
 		// void listen();
 		// void accept();
 		// void read();
 		// void send();
 		// void close();
+		/***********************************SETTER GETTER pour le bot*************************************************/
+		void setPort(int port) { _port = port; }
+		void setPass(std::string password) { _password = password; }
+		void setIp(std::string ip) { _ip = ip; }
+		std::string getIp() { return _ip; }
+		int getPort() { return _port; }
+		std::string getPass() { return _password; }
+
 };
 std::vector<std::string> splitArg(const std::string &str, char delimiter);
-void    sendMessage(int fd, const std::string &msg);
