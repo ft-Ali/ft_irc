@@ -34,15 +34,15 @@ class Channel{
 		bool parseChannelName(Client *client);
 		std::string getName();
 		bool isOnList(const std::vector<Client*>& vec, Client *client);
-		
-	 size_t size() const {
-        return _members.size(); // Retourne le nombre de membres
-    }
+	 	size_t size() const {
+        	return _members.size(); // Retourne le nombre de membres
+    	}
 		bool getInvitOnly();//-i +i 
 		void setInvitOnly(bool acived);
 		void undoInvitOnly();
 		
 		std::string getTopic();//-t +t
+		bool getEditTopic() {return this->_editTopic;}
 		void setTopic(std::string &topicName);
 		void setTopicMode(bool actived);
 		size_t getSize(){return this->_maxMembers;};
@@ -66,12 +66,12 @@ class Channel{
 		bool checkWhiteList(Client *client);
 		void addToWhiteList(Client *client);
 		void removeToWhiteList(Client *client);
-
+		void broadcastInfoMessage(std::string& message);
 		bool checkBanList(Client *client);
 		void addBanList(Client *client);
 		void removeBanList(Client *client);
 		
-		std::string getModes() const;
+		std::string getModes();
     	void addMode(char mode, char sign);
 	    void removeMode(char mode, char sign);
 		std::vector<Client*> getMembers(){return this->_members;}

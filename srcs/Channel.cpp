@@ -28,7 +28,9 @@ void Channel::setInvitOnly(bool actived){
 		_invitOnly = false;
 }
 
-void Channel::setTopic(std::string &topicName){this->_topic = topicName;}
+void Channel::setTopic(std::string &topicName){
+	this->_topic = topicName;
+}
 
 void Channel::setKey(std::string &key){this->_key = key;}
 
@@ -60,10 +62,10 @@ bool Channel::getInvitOnly(){return this->_invitOnly;}
 
 size_t Channel::getMaxMembers(){return this->_maxMembers;}
 
-std::string Channel::getModes() const{
+std::string Channel::getModes() {
 	std::string modes;
 	for(size_t i = 0;i<_modes.size(); ++i){
-		modes += _modes[i];
+		modes += _modes[i] + " ";
 	}
 	return modes;
 }
@@ -188,9 +190,9 @@ bool Channel::checkWhiteList( Client *client){
 	return false;}
 bool Channel::checkOperatorList(Client *client){
 
-if(isOnList(_operatorList, client))
-		return true;
-	return false;
+	if(isOnList(_operatorList, client))
+			return true;
+		return false;
 }
 
 bool Channel::checkListMembers(Client *client){
@@ -239,3 +241,11 @@ void Channel::broadcastMessage(Client* sender, const std::string& msg) {
         }
     }
 }
+
+void Channel::broadcastInfoMessage(std::string& message) {
+    for (std::vector<Client*>::iterator it = _members.begin(); it != _members.end(); ++it) {
+        Client* member = *it;
+        send(member->getFd(), message.c_str(), message.size(), 0);
+    }
+}
+

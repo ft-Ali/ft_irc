@@ -68,6 +68,7 @@ class Server {
 		Channel *getChannelByName(std::string &name);
 		void    cmdPart(std::string &message, std::vector<std::string>&arg ,Client *client);
 		Client *getClientByName(std::string &name);
+		Client *getClientByFds(const int &ClientFd);
 		std::string getClientByFd(const int &ClientFd);
 		void processPart(Client *client, std::string &command);
 		void removeEmptyChannel(Channel* channel);
@@ -81,7 +82,8 @@ class Server {
 		void handleKeyMode(char sign, std::string &param, Client *client, Channel *channel); 
 		void handleModeActions(const std::string &mode, std::string &param, Client *client, Channel *channel); 
 		void handleBasicMode(char mode, char sign, Client *client, Channel *channel);
-	
+		void handleTopic(int clientFd, std::string message);
+		void clientToOperator(Client *client,Channel *channel);
 		/***************************************************************************************/
 
 };

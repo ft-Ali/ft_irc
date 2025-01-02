@@ -2,6 +2,7 @@
 
 Client::Client() {
     bzero(this, sizeof(Client));
+    _currentWindowType = ::NONE;
     _fd = -1;
 }
 

@@ -20,7 +20,6 @@
         password.erase(password.find_last_not_of("\r\n") + 1);
     }
     cmdJoin(channelName, password, client);
-std ::cout << "nous " << message << std::endl;
 } 
 
 
@@ -38,32 +37,37 @@ void	Server::cmdJoin(std::string &Channelname, std::string &key, Client *client)
 }
 
 void Server::handleSingleJoin(std::string &channelName, std::string &key, Client *client) {
-    if (!client)
+    if (!client) 
         return;
-    if(channelName.empty() || channelName.size() == 1) {
-           sendClientResponse(client, ":server_name 403 " + channelName + " :No such channel\r\n");
+    if (!client->hasValidHost()) {
+        std::cerr << "Error: The client " << client->getNickName() << " does not have a valid host.\n";
+        return;
+    }
+
+    if (channelName.empty() || channelName.size() == 1) {
+        sendClientResponse(client, ":server_name 403 " + channelName + " :No such channel\r\n");
         return;
     }
 
     Channel* channel = NULL;
     if (!channelExist(channelName)) {
-        if (key.empty())
-            channel = new Channel(client, channelName);
-        else
-            channel = new Channel(client, channelName, key);
+    if (key.empty())
+        channel = new Channel(client, channelName);
+    else
+        channel = new Channel(client, channelName, key);
 
-        if (!channel) {
-            std::cerr << "Error: Failed to create channel.\n";
+    if (!channel) {
+        std::cerr << "Error: Failed to create the channel.\n";
+        return;
+    }
+        if (!channel->parseChannelName(client)) {
+            delete channel;
             return;
-        }
-        if (!channel->parseChannelName(client)){
-		    delete channel;
-            return ;
         }
         _channels.push_back(channel);
         client->setJoinedChannels(channel);
+        client->setCurrentChannel(channel);
     } else {
-        // std::cout << "Channel " << channelName << " join.\n";
         channel = getChannelByName(channelName);
         if (!channel) {
             sendClientResponse(client, ":server_name 403 " + channelName + " :No such channel\r\n");
@@ -71,12 +75,32 @@ void Server::handleSingleJoin(std::string &channelName, std::string &key, Client
         }
         checkRestriction(*channel, client, key);
     }
-    // const std::vector<Channel*> chans = client->getJoinedChannels();
-    // std::cout << "Client is now in " << chans.size() << " channel(s):\n";
-    // for (size_t i = 0; i < chans.size(); ++i) {
-    //     std::cout << " - " << chans[i] << " (" << chans[i]->getName() << ")\n";
-    // }
+    clientToOperator(client, channel);
 }
+
+void Server::clientToOperator(Client *client,Channel *channel){
+  std::string namesResponse = ":server_name 353 " + client->getNickName() + " = " + channel->getName() + " :";
+    const std::vector<Client*> members = channel->getMembers();
+    for (size_t i = 0; i < members.size(); ++i) {
+        if (!members[i]->hasValidHost()) {
+            continue;
+        }
+        if (channel->checkOperatorList(members[i])) {
+            namesResponse += "@";
+        }
+        namesResponse += members[i]->getNickName() + " ";
+    }
+    namesResponse += "\r\n";
+    send(client->getFd(), namesResponse.c_str(), namesResponse.size(), 0);
+
+   std::string host = client->getHost();
+    if (host.empty()) {
+        host = "unknown_host";
+    }
+    std::string welcomeMsg = ":" + client->getNickName() + "!" + client->getUserName() +  host + " JOIN " + channel->getName() + "\r\n";
+    channel->broadcastInfoMessage(welcomeMsg);
+}
+
 
 void	Server::checkRestriction(Channel &channel, Client *client, std::string &key){
 	
@@ -87,7 +111,7 @@ void	Server::checkRestriction(Channel &channel, Client *client, std::string &key
     }
 
     if (channel.getInvitOnly() && !channel.checkWhiteList(client)) {
-        std::string response = ":server_name 441 " + client->getNickName()+ " " + channel.getName() + " :You are not invited\r\n";
+        std::string response = ":server_name 441 " + client->getNickName()+ " " + channel.getName() + " :You are not invited(+i)\r\n";
         send(client->getFd(), response.c_str(), response.size(), 0);
         return;
     }
@@ -106,6 +130,8 @@ void	Server::checkRestriction(Channel &channel, Client *client, std::string &key
     }
 	channel.addListMember(client);
     client->setJoinedChannels(&channel);
+    client->setCurrentChannel(&channel);
+
 }
 
 Channel *Server::getChannelByName(std::string &name){

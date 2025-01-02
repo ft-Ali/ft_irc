@@ -21,6 +21,8 @@ void Server::handlePrivMsg(const std::string& line, int clientFd) {
         Channel* channel = getChannelByName(target);
         Client* client = getClientByName(clientName);
         if (channel && channel->checkListMembers(client)) {
+            if (channel->checkOperatorList(client)) 
+                clientName = "@" + clientName;
             // std::cout << "Client " << clientName << " envoie un message au channel " << target << ": " << msg << std::endl;
             channel->broadcastMessage(client, msg);
         } else {
@@ -43,6 +45,7 @@ void Server::handlePrivMsg(const std::string& line, int clientFd) {
         if (channel) {
             // Si c'est un canal, envoie un message et redirige vers la fenêtre du canal
             std::string response = ":" + clientName + " PRIVMSG " + target + " :" + msg + "\r\n";
+      
             channel->broadcastMessage(targetClient, msg);
 
             // Commande pour rediriger le client vers la fenêtre du canal
@@ -279,13 +282,12 @@ void Server::handleClientMessage(int i) {
     // Receive the message from the client
     int ret = recv(clientFd, buffer, sizeof(buffer) - 1, 0);
     if (ret <= 0) {
-    close(clientFd); // Fermer le FD
-    _clientNicks.erase(clientFd); // Supprimer le nickname associé
-    _clientUsers.erase(clientFd); // Supprimer le username associé
-    _authenticatedClients.erase(clientFd); // Supprimer l'état d'authentification
-    std::cout << "Client FD " << clientFd << " disconnected and cleaned up." << std::endl;
-}
-
+        close(clientFd); // Fermer le FD
+        _clientNicks.erase(clientFd); // Supprimer le nickname associé
+        _clientUsers.erase(clientFd); // Supprimer le username associé
+        _authenticatedClients.erase(clientFd); // Supprimer l'état d'authentification
+        std::cout << "Client FD " << clientFd << " disconnected and cleaned up." << std::endl;
+    }
 
     buffer[ret] = '\0'; // Null-terminate the received message
     std::string message(buffer);
@@ -306,7 +308,8 @@ void Server::handleClientMessage(int i) {
         }
         else if (line.find("CAP") == 0) {
             handleCap(clientFd, line);
-        } else if (line.find("NICK ") == 0) {
+        }
+        else if (line.find("NICK ") == 0) {
             handleNick(clientFd, line);
             if(_isConnected == false) {
                 std::string response = "ERROR: Nickname already in use.\n";
@@ -322,7 +325,9 @@ void Server::handleClientMessage(int i) {
             handleUser(clientFd);
         } else if (line.find("JOIN") == 0) {
             processJoin(clientName, line);
-        }else if (line.find("PART") == 0) {
+        } else if (line.find("TOPIC") == 0) {
+            handleTopic(clientFd, line);
+        } else if (line.find("PART") == 0) {
             processPart(client, line);
         } else if (line.find("PRIVMSG") == 0) {
             handlePrivMsg(line, clientFd);
@@ -448,4 +453,12 @@ std::string Server::getClientByFd(const int &clientFd){
         if(it != _clientNicks.end())
             clientName = it->second;
     return clientName;
+}
+
+Client *Server::getClientByFds(const int &clientFd){
+	for (size_t i = 0; i < _clients.size(); ++i) {
+        if (_clients[i]->getFd() == clientFd)
+            return _clients[i];
+    }
+	return NULL;
 }

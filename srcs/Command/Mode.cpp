@@ -8,27 +8,28 @@
 // — l : Définir/supprimer la limite d’utilisateurs pour le canal
 
 void Server::manageMode(std::string &cmd, Client *client) {
-    
     std::vector<std::string> cmdMode = splitArg(cmd, ' ');
+    if (!cmdMode.size()) {
+        sendClientResponse(client, ":server_name 461 " + client->getNickName() + " MODE :Not enough parameters\r\n");
+        return;
+    }
     Channel *channel = getChannelByName(cmdMode[1]);
     if (!channel) {
         sendClientResponse(client, ":server_name 403 " + cmdMode[1] + " :No such channel\r\n");
         return;
     }
-
     std::string mode = (cmdMode.size() > 2) ? cmdMode[2] : "";
     std::string param = (cmdMode.size() > 3) ? cmdMode[3] : "";
-
     if (mode.empty()) {
-        sendClientResponse(client, ":server_name 403 " + channel->getName() + ": " + channel->getModes() + "\r\n");
+        std::string currentModes = ":" + client->getNickName() + " MODE " + channel->getName() + " :" + channel->getModes() + "\r\n";
+        channel->broadcastInfoMessage(currentModes);
         return;
     }
-
     handleModeActions(mode, param, client, channel);
-    sendClientResponse(client, ":server_name NOTICE " + channel->getName() + ": " + channel->getModes() + "\r\n");
-
-std ::cout << "nous " << cmd << std::endl;
+    std::string updatedModes = ":" + client->getNickName() + " MODE " + channel->getName() + " :" + channel->getModes() + "\r\n";
+    channel->broadcastInfoMessage(updatedModes);
 }
+
 
 void Server::handleModeActions(const std::string &mode, std::string &param, Client *client, Channel *channel) {
     char sign = mode[0];
@@ -122,3 +123,4 @@ void Server::handleOperatorMode(char sign, std::string &param, Client *client, C
 void sendClientResponse(Client *client, const std::string &response) {
     send(client->getFd(), response.c_str(), response.size(), 0);
 }
+
