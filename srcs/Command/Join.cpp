@@ -3,6 +3,7 @@
 
 // exemple command plusieur channel JOIN #channel1,#channel2,#channel3 key1,,key3
  void Server::processJoin(std::string name, const std::string& message) {
+    
     size_t spacePos = message.find(' ');
     std::string channelName = message.substr(5, spacePos - 5);
     channelName.erase(channelName.find_last_not_of("\r\n") + 1);
@@ -19,6 +20,7 @@
         password.erase(password.find_last_not_of("\r\n") + 1);
     }
     cmdJoin(channelName, password, client);
+std ::cout << "nous " << message << std::endl;
 } 
 
 

@@ -8,6 +8,7 @@
 // — l : Définir/supprimer la limite d’utilisateurs pour le canal
 
 void Server::manageMode(std::string &cmd, Client *client) {
+    
     std::vector<std::string> cmdMode = splitArg(cmd, ' ');
     Channel *channel = getChannelByName(cmdMode[1]);
     if (!channel) {
@@ -26,6 +27,7 @@ void Server::manageMode(std::string &cmd, Client *client) {
     handleModeActions(mode, param, client, channel);
     sendClientResponse(client, ":server_name NOTICE " + channel->getName() + ": " + channel->getModes() + "\r\n");
 
+std ::cout << "nous " << cmd << std::endl;
 }
 
 void Server::handleModeActions(const std::string &mode, std::string &param, Client *client, Channel *channel) {

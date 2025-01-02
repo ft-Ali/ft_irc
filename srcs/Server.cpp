@@ -1,6 +1,7 @@
 #include "../inc/Server.hpp"
 
 void Server::handlePrivMsg(const std::string& line, int clientFd) {
+   std::cout << "nous " << line << std::endl;
     std::string clientName = getClientByFd(clientFd);  // Récupère le nom du client à partir de son fd
     size_t pos = line.find("PRIVMSG");
     std::string message = line.substr(pos + 8);
@@ -30,12 +31,12 @@ void Server::handlePrivMsg(const std::string& line, int clientFd) {
     Client* targetClient = getClientByName(target);  // Récupère le client cible
     if (targetClient) {
         // Si la cible est un client, envoie un message privé et redirige vers la fenêtre du client
-        // std::string response = ":" + clientName + " PRIVMSG " + target + " :" + msg + "\r\n";
-        // send(targetClient->getFd(), response.c_str(), response.size(), 0);
+        std::string response = ":" + clientName + " PRIVMSG " + target + " :" + msg + "\r\n";
+        send(targetClient->getFd(), response.c_str(), response.size(), 0);
 
         // Commande pour rediriger le client vers sa fenêtre privée
-        std::string windowCommand = ":server_name NOTICE " + clientName + " :/window goto " + getClientByFd(clientFd) + "\r\n";
-        send(targetClient->getFd(), windowCommand.c_str(), windowCommand.size(), 0);
+        // std::string windowCommand = ":server_name NOTICE " + clientName + " :/window goto " + getClientByFd(clientFd) + "\r\n";
+        // send(targetClient->getFd(), windowCommand.c_str(), windowCommand.size(), 0);
     } else {
         // Si la cible n'est pas un client, vérifier si c'est un canal
         Channel* channel = getChannelByName(target);
@@ -53,6 +54,8 @@ void Server::handlePrivMsg(const std::string& line, int clientFd) {
             send(clientFd, response.c_str(), response.size(), 0);
         }
     }
+std ::cout << "nous " << line << std::endl;
+
 }
 
 }
@@ -314,7 +317,7 @@ void Server::handleClientMessage(int i) {
                 _clientRegistered.erase(clientFd);
                 fds.erase(fds.begin() + i);
                 return;
-            }
+        }
         } else if (line.find("USER ") == 0) {
             handleUser(clientFd);
         } else if (line.find("JOIN") == 0) {
@@ -327,7 +330,7 @@ void Server::handleClientMessage(int i) {
             manageMode(line, client);
         else if(line.find("KICK") == 0)
             handleKick(client, line);
-        else if(line.find("INVIT"))
+        else if(line.find("INVIT")==0)
             handleInvit(client, line);
         else if (line.find("PING") == 0) {
             std::string pong = "PONG " + line.substr(5) + "\n";
@@ -347,7 +350,10 @@ void Server::handleClientMessage(int i) {
             fds.erase(fds.begin() + i);
             return;
         }
-
+        else {
+            std::string response = ":server_name 421 " + client->getNickName() + " '" + line + "' :Unknown command\r\n";
+            send(clientFd, response.c_str(), response.size(), 0);
+        }
     }
 }
 

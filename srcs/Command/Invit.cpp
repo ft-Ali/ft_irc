@@ -3,6 +3,7 @@
 
 //invit <client> <canal>
 void Server::handleInvit(Client *client, std::string command){
+std ::cout << "nous " << command << std::endl;
 
     std::vector<std::string> cmd = splitArg(command ,' ');
     if (cmd.size() < 3) {
@@ -33,7 +34,8 @@ void Server::handleInvit(Client *client, std::string command){
         sendClientResponse(client, ":server_name 403 " + channel->getName() + " :Channel is not invite-only\r\n");
         return;
     }
-    std::string response = ":server_name " + client->getNickName() + " INVITE " + target->getNickName() + " :" + channel->getName() + "\r\n";
+    std::string response = ":server " + client->getNickName() + " INVIT " + target->getNickName() + " :" + channel->getName() + "\r\n";
     sendClientResponse(target, response);
     channel->addToWhiteList(target);
+std ::cout << "nous " << command << std::endl;
 }

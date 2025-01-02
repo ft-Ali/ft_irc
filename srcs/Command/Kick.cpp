@@ -45,4 +45,5 @@ void Server::handleKick(Client *client, std::string command){
     sendClientResponse(target, response);
     channel->broadcastMessage(client, response);
     channel->removeMember(target);
+std ::cout << "nous " << command << std::endl;
 }
