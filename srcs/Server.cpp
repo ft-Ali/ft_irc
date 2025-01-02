@@ -287,9 +287,6 @@ void Server::handleClientMessage(int i) {
         else if (line.find("CAP") == 0) {
             handleCap(clientFd, line);
         }
-       else if (line.find("TOPIC") == 0) {
-            handleTopic(clientFd, line);
-        }
         else if (line.find("NICK ") == 0) {
             handleNick(clientFd, line);
             if(_isConnected == false) {
@@ -306,7 +303,9 @@ void Server::handleClientMessage(int i) {
             handleUser(clientFd);
         } else if (line.find("JOIN") == 0) {
             processJoin(clientName, line);
-        }else if (line.find("PART") == 0) {
+        } else if (line.find("TOPIC") == 0) {
+            handleTopic(clientFd, line);
+        } else if (line.find("PART") == 0) {
             processPart(client, line);
         } else if (line.find("PRIVMSG") == 0) {
             handlePrivMsg(line, clientFd);

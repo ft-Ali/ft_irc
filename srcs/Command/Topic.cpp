@@ -51,14 +51,13 @@ void    Server::handleTopic(int clientFd, std::string message) {
 
         if ((!prompt_channelName.empty() && newTopic.empty()) || (prompt_channelName.empty() && newTopic.empty())) {
             if (currentChannel->getTopic().empty()) {
-                // std::string response = ":server_name 331 " + client->getNickName() + " " + currentChannel->getName() + " :No topic is set" + "\r\n";
-                std::string response = "-!- No topic set for " + currentChannel->getName() + "\r\n";
+                std::string response = ":IRC 331 " + client->getNickName() + " " + currentChannel->getName() + " :No topic is set" + "ME\r\n";
                 send(client->getFd(), response.c_str(), response.size(), 0);
+                
                 throw std::invalid_argument("No topic set for given channel");
             }
             else {
-                // std::string response = ":server_name 332 " + client->getNickName() + " " + currentChannel->getName() + " " + currentChannel->getTopic() + "\r\n";
-                std::string response = "-!- Topic for " + currentChannel->getName() + ": " + currentChannel->getTopic();
+                std::string response = ":IRC 332 " + client->getNickName() + " " + currentChannel->getName() + " " + currentChannel->getTopic() + "ME\r\n";
                 send(client->getFd(), response.c_str(), response.size(), 0);
             }
         }
@@ -73,15 +72,14 @@ void    Server::handleTopic(int clientFd, std::string message) {
             }
             currentChannel->setTopic(newTopic);
             
-            // std::string response = ":" + client->getNickName() + "!" + client->getUserName() + "server_name" + " TOPIC " + currentChannel->getName() + " :" + newTopic + "\r\n";
-            std::string response = "-!- " + client->getNickName() + "changed the topic of " + currentChannel->getName() +"\r\n";
+            std::string response = ":" + client->getNickName() + "!" + client->getUserName() + "IRC" + " TOPIC " + currentChannel->getName() + " :" + newTopic + "ME\r\n";
             send(client->getFd(), response.c_str(), response.size(), 0);
+
             currentChannel->broadcastMessage(client, response);
         }
         else if (currentChannel->getEditTopic() == false) {
 
-            // std::string response = ":server_name 482 " + client->getNickName() + " " + currentChannel->getName() + " :You're not a channel operator\r\n";
-            std::string response = currentChannel->getName() + " :You're not a channel operator\r\n";
+            std::string response = ":IRC 482 " + client->getNickName() + " " + currentChannel->getName() + " :You're not a channel operatorME\r\n";
             send(client->getFd(), response.c_str(), response.size(), 0);
             throw std::invalid_argument("You're not a channel operator");
         }
@@ -95,3 +93,7 @@ void    Server::handleTopic(int clientFd, std::string message) {
 // 332: SEE -TOPIC send to client
 // setting channel successfully (not code)
 // 482: ACCESS FORBIDDEN -TOPIC client not operator
+
+// /TOPIC #channelName                    --> voir le topic
+// /TOPIC #channelName :newtopic          --> mofifier le topic
+// /TOPIC #channelname :                  -->clear topic
