@@ -70,11 +70,20 @@ void Server::handleSingleJoin(std::string &channelName, std::string &key, Client
         }
         checkRestriction(*channel, client, key);
     }
-    // const std::vector<Channel*> chans = client->getJoinedChannels();
-    // std::cout << "Client is now in " << chans.size() << " channel(s):\n";
-    // for (size_t i = 0; i < chans.size(); ++i) {
-    //     std::cout << " - " << chans[i] << " (" << chans[i]->getName() << ")\n";
-    // }
+   std::string namesResponse = ":server_name 353 " + client->getNickName() + " = " + channel->getName() + " :";
+    const std::vector<Client*> members = channel->getMembers();
+    for (size_t i = 0; i < members.size(); ++i) {
+        if (channel->checkOperatorList(members[i])) {
+            namesResponse += "@";
+        }
+        namesResponse += members[i]->getNickName() + " ";
+    }
+    namesResponse += "\r\n";
+    send(client->getFd(), namesResponse.c_str(), namesResponse.size(), 0);
+
+    // Finalement, envoi d'un message de bienvenue dans le canal
+    std::string welcomeMsg = ":" + client->getNickName() + " JOIN " + channel->getName() + "\r\n";
+    send(client->getFd(), welcomeMsg.c_str(), welcomeMsg.size(), 0);
 }
 
 void	Server::checkRestriction(Channel &channel, Client *client, std::string &key){
