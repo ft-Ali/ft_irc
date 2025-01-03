@@ -307,6 +307,7 @@ void Server::handleClientMessage(int i) {
             processPart(client, line);
         } else if (line.find("PRIVMSG") == 0) {
             handlePrivMsg(line, clientFd);
+
         } else if (line.find("PING") == 0) {
             std::string pong = "PONG " + line.substr(5) + "\n";
             int j=0;

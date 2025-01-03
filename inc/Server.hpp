@@ -21,7 +21,7 @@
 #pragma once
 
 class Server {
-	private:
+	protected:
 		int _port; //av[1]
 		std::string _password;  //av[2]
 		int _serSocketFd;
@@ -35,7 +35,6 @@ class Server {
 		std::map<int, std::string> _clientUsers; //-> map of client fds and users
 		std::map<int, std::string> _clientNicks; //-> map of client fds and nicks
 		std::string _ip;
-
 	public:
 		Server(int port, std::string password) : _port(port), _password(password), _serSocketFd(-1), _isConnected(false), fds(0) {
 			if(instance != NULL) {
@@ -49,12 +48,7 @@ class Server {
 			instance = NULL;
 
 		};
-		static Server* getInstance() {
-			if (instance == NULL) {
-				throw std::runtime_error("Server instance is not created yet.");
-			}
-			return instance;
-    	}
+
 		void serverInit();
 		void serverLoop();
 		void handleNewConnection();

@@ -7,7 +7,7 @@ FLAG        =   -Wall -Wextra -Werror -std=c++98 -g3
 
 
 C_FILE		 =	main.cpp srcs/Server.cpp srcs/Client.cpp srcs/Channel.cpp srcs/Command/Join.cpp srcs/Command/Part.cpp srcs/Command/Mode.cpp
-C_FILE_BOT 	= srcs/Bot/mainBot.cpp srcs/Bot/Bot.cpp
+C_FILE_BOT 	= srcs/Bot/mainBot.cpp srcs/Bot/Bot.cpp srcs/Server.cpp srcs/Client.cpp srcs/Channel.cpp srcs/Command/Join.cpp srcs/Command/Part.cpp srcs/Command/Mode.cpp
 
 OBJS        =   $(C_FILE:.cpp=.o)
 OBJS_BOT	=	$(C_FILE_BOT:.cpp=.o)
