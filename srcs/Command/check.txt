@@ -1,0 +1,26 @@
+command :
+    MODE :  +i ok
+           -i ok
+    MODE :  +t ok
+           -t ok
+    MODE :  +k ok
+           -k ok
+    MODE :  +o ok
+           -o ok
+    MODE :  +l ok
+           -l ok
+    ----------
+    INVIT: check si il est op
+
+    JOIN :  check mdp avec netcat ok
+            check si invitonly / si il est sur la list ok
+            check limit channel  ok
+            check mdp ok
+    kick : check si il est op ok
+            check si il est sur le channel a kick  ok
+    part : check si c'est le dernier op transfere le role ok
+        si c'est le dernier sur la list ferme le channel ok
+        check si il est sur le channel ok
+    TOPIC :check si le channel exist 
+            check si c'est le topic est editable(op only) ok
+    

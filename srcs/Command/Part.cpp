@@ -26,23 +26,24 @@ void Server::processPart(Client* client, std::string& command) {
 
 void Server::cmdPart(std::string& msg, std::vector<std::string>& channelNames, Client* client) {
     for (std::vector<std::string>::iterator it = channelNames.begin(); it != channelNames.end(); ++it) {
-(void)msg;
         Channel* channel = getChannelByName(*it);
         if (!channel) {
-            // std::string response = ":server_name 403 " + client->getNickName() + " " + *it + " :No such channel\r\n";
-            // send(client->getFd(), response.c_str(), response.size(), 0);
             continue;
         }
         if (!channel->checkListMembers(client)) {
-            std::string response = ":server_name 442 " + client->getNickName() + " " + *it + " :You're not on that channel\r\n";
+            std::string response = ":[IRC] 442 " + client->getNickName() + " " + *it + " PART :You're not on that channel\r\n";
             send(client->getFd(), response.c_str(), response.size(), 0);
             continue;
         }
+        std::string partMessage = ":" + client->getNickName() + "!" + client->getHost() + 
+                                  " PART " + *it + " :" + msg + "\r\n";
         if (channel->checkOperatorList(client)) {
             channel->removeOperator(client);
         }
         channel->leaveChannel(client);
         client->removeJoinedChannel(channel);
+        channel->setNewOperator();
+        channel->broadcastMessage(client, partMessage);
         if (channel->size() == 0) {
             removeEmptyChannel(channel);
         }
@@ -53,7 +54,8 @@ void Server::removeEmptyChannel(Channel* channel) {
     if (channel->size() == 0) {
         std::vector<Channel*>::iterator it = std::find(_channels.begin(), _channels.end(), channel);
         if (it != _channels.end()) {
-            _channels.erase(it);
+                delete *it;
+                _channels.erase(it);
         }
     }
 }

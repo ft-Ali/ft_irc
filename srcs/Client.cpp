@@ -2,6 +2,7 @@
 
 Client::Client() {
     bzero(this, sizeof(Client));
+    _currentWindowType = ::NONE;
     _fd = -1;
 }
 
@@ -29,12 +30,12 @@ void Client::removeJoinedChannel(Channel *channel){
 }
 
 void Client::print() {
-    std::cout << std::endl
-    << "Client username: " << this->getUserName() << std::endl
-    << "Ipaddr: " << this->getIpaddr()<< std::endl
-    << "Port: " << this->getPort() << std::endl 
-    << "Nick: " << this->getNickName() << std::endl 
-    << "isConnected: " << this->isConnected() << std::endl
-    << "isOperator: " << this->isOperator() << std::endl
-    << "isRegistered: " << this->isRegistered() << std::endl << std::endl;
+    // std::cout << std::endl
+//     << "Client username: " << this->getUserName() << std::endl
+//     << "Ipaddr: " << this->getIpaddr()<< std::endl
+//     << "Port: " << this->getPort() << std::endl 
+//     << "Nick: " << this->getNickName() << std::endl 
+//     << "isConnected: " << this->isConnected() << std::endl
+//     << "isOperator: " << this->isOperator() << std::endl
+//     << "isRegistered: " << this->isRegistered() << std::endl << std::endl;
 }

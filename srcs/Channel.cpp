@@ -2,18 +2,16 @@
 #include "../inc/Server.hpp"
 
 Channel::Channel(Client *client,const std::string  &ChannelName) : _name(ChannelName), _topic(""), _key("")
- ,_maxMembers(200), _editTopic(false), _invitOnly(false), _isOperator(false) {
+ ,_maxMembers(200), _editTopic(true), _invitOnly(false), _isOperator(false) {
 
-    parseChannelName();
     _members.push_back(client);
     _operatorList.push_back(client);
     _creationTime = time(NULL);
 };
 
 Channel::Channel(Client *client, const std::string  &ChannelName, const std::string &key) : _name(ChannelName), _topic(""), _key(key),
-  _maxMembers(200),_editTopic(false), _invitOnly(false), _isOperator(false) {
+  _maxMembers(200),_editTopic(true), _invitOnly(false), _isOperator(false) {
 
-    parseChannelName();
     _members.push_back(client);
     _operatorList.push_back(client);
     _creationTime = time(NULL);
@@ -23,16 +21,39 @@ Channel::~Channel(){}
 
 /**************************SETTERS*******************************/
 
-void Channel::setInvitOnly(){this->_invitOnly = true;}
+void Channel::setInvitOnly(bool actived){
+	if(actived)
+		_invitOnly = true;
+	else
+		_invitOnly = false;
+}
 
-void Channel::setTopic(std::string &topicName){this->_topic = topicName;}
+void Channel::setTopic(std::string &topicName){
+	this->_topic = topicName;
+}
 
 void Channel::setKey(std::string &key){this->_key = key;}
 
-void Channel::setmaxMembers(size_t size){this->_maxMembers = size;}
+void Channel::setMaxMembers(size_t size){this->_maxMembers = size;}
 
-// void Channel::setOperator(const std::vector<Client*>& vec, Client *client){}
+void Channel::setTopicMode(bool actived){
+	if(actived)
+		_editTopic = true;
+	else
+		_editTopic = false;
+}
 
+void Channel::setOperator(Client *client){
+	addMember(_operatorList, client);
+}
+
+void Channel::setNewOperator(){
+	if(_members.size() >=1){
+		std::vector<Client*>::iterator it = _members.begin();
+		if(!checkOperatorList(*it))
+			setOperator(*it);
+	}
+}
 
 /**************************GETTERS*******************************/
 std::string Channel::getTopic(){return this->_topic;}
@@ -41,10 +62,10 @@ bool Channel::getInvitOnly(){return this->_invitOnly;}
 
 size_t Channel::getMaxMembers(){return this->_maxMembers;}
 
-std::string Channel::getModes() const{
+std::string Channel::getModes() {
 	std::string modes;
 	for(size_t i = 0;i<_modes.size(); ++i){
-		modes += _modes[i];
+		modes += _modes[i] + " ";
 	}
 	return modes;
 }
@@ -54,37 +75,33 @@ std::string Channel::getCreationTime() const{
 	return time;
 }
 
-std::string Channel::getKey(){return this->_key;}
+std::string Channel::getKey() {return this->_key;}
 
-std::string Channel::getName(){return this->_name;}
+std::string Channel::getName() {return this->_name;}
 
 /*******************************ADD******************************/
 void Channel::addMember(std::vector<Client*> &vec, Client *client){
-
-	// std::vector<Client *>::const_iterator it = std::find(vec.begin(), vec.end(), client);
-	// if(it != vec.end()){
-	// 	std::cout << "Client already set \n";
-	// 	std::cout << client->getNickname() << std::endl;
-	// }
-	// else
-	// for(std::vector<Client*>::iterator it = _members.begin(); it != _members.end(); ++it){
-
-	// 	std::cout <<"client :" << client->getName() << std::endl;
-
-	// }
-		vec.push_back(client);
+	vec.push_back(client);
 }
 
-void Channel::addMode(char mode){
-	for(size_t i = 0; i < _modes.size(); ++i){
-		if(mode == _modes[i])
-			return ;
-	}
-	if(mode == 'i' ||mode == 't' ||mode == 'k' ||mode == 'o' ||mode == 'l')
-		_modes.push_back(mode);
-	else
-		std::cout << "Invalid mod \n";
+void Channel::addMode(char mode, char sign) {
+    if (sign != '+' && sign != '-')
+        return;
+    if (mode != 't' && mode != 'k' && mode != 'o' && mode != 'l' && mode != 'i')
+        return;
+
+    std::string fullMode = std::string(1, sign) + mode;
+    for (std::vector<std::string>::iterator it = _modes.begin(); it != _modes.end(); ++it) {
+        if ((*it)[1] == mode) { 
+            _modes.erase(it);
+            break;
+        }
+    }
+
+    // Ajoute le mode avec le nouveau signe
+    _modes.push_back(fullMode);
 }
+
 
 void Channel::addToWhiteList( Client *client){
 	addMember(_whiteList, client);
@@ -97,13 +114,12 @@ void Channel::addListMember(Client *client){
 	addMember(_members, client);
 }
 
-void Channel::setOperator(Client *client){
-	addMember(_operatorList, client);
-}
+
 /*******************************REMOVE***************************/
 void Channel::clearVec(std::vector<Client*> &vec, Channel *channel){
 	 for (size_t i = 0; i < channel->getSizeVec(vec); ++i) {
-                delete vec[i];
+            if(vec[i])
+				delete vec[i];
         }
 	vec.clear();
 }
@@ -138,16 +154,21 @@ void Channel::removeBanList(Client *client){
 	removeClientList(_banList, client);
 }
 
-void Channel::removeMode(char mode){
+void Channel::removeMode(char mode, char sign){
+	std::string fullMode;
+	fullMode += sign;
+	fullMode += mode;
 	for(size_t i = 0; i < _modes.size(); ++i){
-		if(mode == _modes[i]){
+		if(_modes[i].find(fullMode)){
 			_modes.erase(_modes.begin()+ i) ;
 			return ;
 		}
 	}
 }
-void Channel::undoInvitOnly(){this->_invitOnly = false;}
-void Channel::undoKey(){this->_key.clear();}
+void Channel::undoInvitOnly() {this->_invitOnly = false;}
+
+void Channel::undoKey() {this->_key.clear();}
+
 /*******************************CHECK****************************/
 bool Channel::isOnList(const std::vector<Client*>& vec, Client *client){
 
@@ -169,9 +190,9 @@ bool Channel::checkWhiteList( Client *client){
 	return false;}
 bool Channel::checkOperatorList(Client *client){
 
-if(isOnList(_operatorList, client))
-		return true;
-	return false;
+	if(isOnList(_operatorList, client))
+			return true;
+		return false;
 }
 
 bool Channel::checkListMembers(Client *client){
@@ -179,23 +200,42 @@ bool Channel::checkListMembers(Client *client){
 		return true;
 	return false;
 }
-/****************************************************************/
-void Channel::parseChannelName(){
-
-	if(_name.size() > 50)
-		throw(std::invalid_argument("Inavlid size name"));
-	if(_name[0] != '#')
-		throw(std::invalid_argument("Inavlid channel prefix"));
-	if(_name.find(' ') != std::string::npos)
-		throw(std::invalid_argument("Inavlid channel name"));
-	if(_name.find("^G") != std::string::npos)
-		throw(std::invalid_argument("Inavlid channel name"));
-	if(_name.find(',') != std::string::npos)
-		throw(std::invalid_argument("Inavlid channel name"));
-
+/**************************UTILS*****************************/
+bool Channel::parseChannelName(Client *client){
+	size_t start = _name.find_first_not_of(' ');
+    if (start == std::string::npos) {
+        sendClientResponse(client, ":[IRC] 476" + _name +" :Channel name cannot be empty or only spaces\r\n");
+        return false;
+    }
+	std::string trimName = _name.substr(start);
+	if(_name[0] != '#'){
+		sendClientResponse(client, ":[IRC] 476 " + trimName + " Channel name must start with '#'\r\n");
+	return false;
+	}
+	if (trimName.size() == 0){
+        sendClientResponse(client, ":[IRC] 476" + _name +" :Channel name cannot be empty or only spaces\r\n");
+        return false;
+    }
+	if(trimName.size() > 50){
+		sendClientResponse(client, ":[IRC] 476 " + trimName + " Channel name is too long\r\n");
+	return false;
+	}
+	if(trimName.find(' ') != std::string::npos){
+		sendClientResponse(client, ":[IRC] 476 " + trimName + " Channel name contains invalid spaces\r\n");
+	return false;
+	}
+	if(trimName.find("^G") != std::string::npos){
+		sendClientResponse(client, ":[IRC] 476 " + trimName + " Channel name contains invalid characters\n");
+	return false;
+	}
+	if(trimName.find(',') != std::string::npos){
+		sendClientResponse(client, ":[IRC] 476 " + trimName + " Channel name contains commas\r\n");
+	return false;
+	}
+	_name = trimName;
+	return true;
 }
 
-// Dans la classe Channel
 void Channel::broadcastMessage(Client* sender, const std::string& msg) {
     for (std::vector<Client*>::iterator it = _members.begin(); it != _members.end(); ++it) {
         Client* member = *it;
@@ -205,3 +245,11 @@ void Channel::broadcastMessage(Client* sender, const std::string& msg) {
         }
     }
 }
+
+void Channel::broadcastInfoMessage(const std::string& message) {
+    for (std::vector<Client*>::iterator it = _members.begin(); it != _members.end(); ++it) {
+        Client* member = *it;
+        send(member->getFd(), message.c_str(), message.size(), 0);
+    }
+}
+

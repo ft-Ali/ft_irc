@@ -57,6 +57,7 @@ class Server {
 		void processJoin(std::string Client, const std::string& message);
 		void closeServer();
 		void handleCap(int clientFd, const std::string& message);
+		void setNickName(std::string name, int fd){ this->_clientNicks[fd-4] = name;}
 		/************************************COMMAND********************************************/
 		void cmdJoin(std::string &nameChannel, std::string &key, Client *client);
 		bool channelExist(const std::string& name);
@@ -65,9 +66,24 @@ class Server {
 		Channel *getChannelByName(std::string &name);
 		void    cmdPart(std::string &message, std::vector<std::string>&arg ,Client *client);
 		Client *getClientByName(std::string &name);
+		Client *getClientByFds(const int &ClientFd);
 		std::string getClientByFd(const int &ClientFd);
 		void processPart(Client *client, std::string &command);
 		void removeEmptyChannel(Channel* channel);
 		void handlePrivMsg(const std::string& line, int clientFd);
+		void handleKick(Client *client, std::string command);
+		void handleInvit(Client *client, std::string command);
+		/*----------------------------------MODE---------------------------------------------*/
+		void manageMode(std::string &mode, Client *client);
+		void handleOperatorMode(char sign,  std::string &param, Client *client, Channel *channel);
+		void handleLimitMode(char sign, const std::string &param, Client *client, Channel *channel);
+		void handleKeyMode(char sign, std::string &param, Client *client, Channel *channel); 
+		void handleModeActions(const std::string &mode, std::string &param, Client *client, Channel *channel); 
+		void handleBasicMode(char mode, char sign, Client *client, Channel *channel);
+		void handleTopic(int clientFd, std::string message);
+		void clientToOperator(Client *client,Channel *channel);
+		/***************************************************************************************/
+
 };
 std::vector<std::string> splitArg(const std::string &str, char delimiter);
+void sendClientResponse(Client *client, const std::string &response);
