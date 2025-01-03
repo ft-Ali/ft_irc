@@ -1,0 +1,96 @@
+Why do programmers prefer dark mode? Because light attracts bugs.
+How many programmers does it take to change a light bulb? None, that's a hardware problem.
+Why do Java developers wear glasses? Because they don't C#.
+Why do programmers hate nature? It has too many bugs.
+Why do Python programmers prefer snake_case? Because they can't stand camelCase.
+Why do programmers always mix up Christmas and Halloween? Because Oct 31 == Dec 25.
+Why was the JavaScript developer sad? Because he didn't know how to 'null' his feelings.
+Why do programmers prefer using the dark mode? Because the light attracts bugs.
+Why do programmers prefer iOS development? Because Android is too fragmented.
+Why do programmers hate the outdoors? There are too many bugs.
+Why do programmers prefer Linux? Because they can't open Windows.
+Why do programmers prefer using the command line? Because they don't like to be GUI.
+Why do programmers prefer cats? Because they don't like to be dogged by bugs.
+Why do programmers prefer using Git? Because they can't commit to anything else.
+Why do programmers prefer using Vim? Because they don't like to be Emacs-ulated.
+Why do programmers prefer using Python? Because they don't like to be constricted by Java.
+Why do programmers prefer using Ruby? Because they don't like to be gemmed in by JavaScript.
+Why do programmers prefer using C++? Because they don't like to be C#-ed.
+Why do programmers prefer using JavaScript? Because they don't like to be typed.
+Why do programmers prefer using HTML? Because they don't like to be styled.
+Why do programmers prefer using CSS? Because they don't like to be scripted.
+Why do programmers prefer using SQL? Because they don't like to be queried.
+Why do programmers prefer using PHP? Because they don't like to be hypertexted.
+Why do programmers prefer using Perl? Because they don't like to be scripted.
+Why do programmers prefer using Bash? Because they don't like to be shelled.
+Why do programmers prefer using PowerShell? Because they don't like to be powered down.
+Why do programmers prefer using Assembly? Because they don't like to be disassembled.
+Why do programmers prefer using COBOL? Because they don't like to be legacy.
+Why do programmers prefer using Fortran? Because they don't like to be formatted.
+Why do programmers prefer using Lisp? Because they don't like to be parenthesized.
+Why do programmers prefer using Haskell? Because they don't like to be functional.
+Why do programmers prefer using Rust? Because they don't like to be corroded.
+Why do programmers prefer using Go? Because they don't like to be stopped.
+Why do programmers prefer using Swift? Because they don't like to be slow.
+Why do programmers prefer using Kotlin? Because they don't like to be jetted.
+Why do programmers prefer using Dart? Because they don't like to be targeted.
+Why do programmers prefer using TypeScript? Because they don't like to be untyped.
+Why do programmers prefer using Scala? Because they don't like to be scaled.
+Why do programmers prefer using Groovy? Because they don't like to be rigid.
+Why do programmers prefer using Elixir? Because they don't like to be mixed.
+Why do programmers prefer using Erlang? Because they don't like to be concurrent.
+Why do programmers prefer using Julia? Because they don't like to be slow.
+Why do programmers prefer using R? Because they don't like to be statistical.
+Why do programmers prefer using MATLAB? Because they don't like to be matrixed.
+Why do programmers prefer using SAS? Because they don't like to be analyzed.
+Why do programmers prefer using SPSS? Because they don't like to be surveyed.
+Why do programmers prefer using Stata? Because they don't like to be tabulated.
+Why do programmers prefer using Minitab? Because they don't like to be minimized.
+Why do programmers prefer using Mathematica? Because they don't like to be symbolic.
+Why do programmers prefer using Maple? Because they don't like to be algebraic.
+Why do programmers prefer using Sage? Because they don't like to be wise.
+Why do programmers prefer using Maxima? Because they don't like to be maximized.
+Why do programmers prefer using Octave? Because they don't like to be musical.
+Why do programmers prefer using Scilab? Because they don't like to be scientific.
+Why do programmers prefer using Racket? Because they don't like to be schemed.
+Why do programmers prefer using Scheme? Because they don't like to be planned.
+Why do programmers prefer using Common Lisp? Because they don't like to be common.
+Why do programmers prefer using Clojure? Because they don't like to be closed.
+Why do programmers prefer using F#? Because they don't like to be sharp.
+Why do programmers prefer using OCaml? Because they don't like to be objective.
+Why do programmers prefer using ReasonML? Because they don't like to be unreasonable.
+Why do programmers prefer using Elm? Because they don't like to be reactive.
+Why do programmers prefer using PureScript? Because they don't like to be impure.
+Why do programmers prefer using CoffeeScript? Because they don't like to be decaffeinated.
+Why do programmers prefer using LiveScript? Because they don't like to be dead.
+Why do programmers prefer using Dart? Because they don't like to be targeted.
+Why do programmers prefer using ActionScript? Because they don't like to be inactive.
+Why do programmers prefer using Lua? Because they don't like to be mooned.
+Why do programmers prefer using Haxe? Because they don't like to be axed.
+Why do programmers prefer using Nim? Because they don't like to be nimble.
+Why do programmers prefer using Crystal? Because they don't like to be clear.
+Why do programmers prefer using Pony? Because they don't like to be horsed.
+Why do programmers prefer using Idris? Because they don't like to be idled.
+Why do programmers prefer using ATS? Because they don't like to be typed.
+Why do programmers prefer using Agda? Because they don't like to be dependent.
+Why do programmers prefer using Coq? Because they don't like to be proven.
+Why do programmers prefer using Lean? Because they don't like to be fat.
+Why do programmers prefer using Isabelle? Because they don't like to be formal.
+Why do programmers prefer using HOL? Because they don't like to be higher-ordered.
+Why do programmers prefer using ACL2? Because they don't like to be automated.
+Why do programmers prefer using PVS? Because they don't like to be verified.
+Why do programmers prefer using Nuprl? Because they don't like to be new.
+Why do programmers prefer using Twelf? Because they don't like to be twelve.
+Why do programmers prefer using Maude? Because they don't like to be rewritten.
+Why do programmers prefer using K? Because they don't like to be formal.
+Why do programmers prefer using TLA+? Because they don't like to be temporal.
+Why do programmers prefer using Alloy? Because they don't like to be alloyed.
+Why do programmers prefer using Z3? Because they don't like to be solved.
+Why do programmers prefer using CVC4? Because they don't like to be checked.
+Why do programmers prefer using Yices? Because they don't like to be satisfied.
+Why do programmers prefer using Boolector? Because they don't like to be booed.
+Why do programmers prefer using MathSAT? Because they don't like to be mathematical.
+Why do programmers prefer using Vampire? Because they don't like to be bloodsucked.
+Why do programmers prefer using E? Because they don't like to be equational.
+Why do programmers prefer using Prover9? Because they don't like to be proven.
+Why do programmers prefer using Lean? Because they don't like to be fat.
