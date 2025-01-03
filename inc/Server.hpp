@@ -44,11 +44,8 @@ class Server {
 		};
 		~Server() {
 			closeServer();
-
 			instance = NULL;
-
 		};
-
 		void serverInit();
 		void serverLoop();
 		void handleNewConnection();
@@ -72,19 +69,5 @@ class Server {
 		void processPart(Client *client, std::string &command);
 		void removeEmptyChannel(Channel* channel);
 		void handlePrivMsg(const std::string& line, int clientFd);
-		/***************************************************************************************/
-		// void listen();
-		// void accept();
-		// void read();
-		// void send();
-		// void close();
-		/***********************************SETTER GETTER pour le bot*************************************************/
-		void setPort(int port) { _port = port; }
-		void setPass(std::string password) { _password = password; }
-		void setIp(std::string ip) { _ip = ip; }
-		std::string getIp() { return _ip; }
-		int getPort() { return _port; }
-		std::string getPass() { return _password; }
-
 };
 std::vector<std::string> splitArg(const std::string &str, char delimiter);

@@ -20,7 +20,6 @@ void Server::handlePrivMsg(const std::string& line, int clientFd) {
         Channel* channel = getChannelByName(target);
         Client* client = getClientByName(clientName);
         if (channel && channel->checkListMembers(client)) {
-            std::cout << "Client " << clientName << " envoie un message au channel " << target << ": " << msg << std::endl;
             channel->broadcastMessage(client, msg);
         } else {
             std::string response = ":server_name 403 " + clientName + " " + target + " :No such channel\r\n";

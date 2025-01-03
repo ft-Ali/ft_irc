@@ -8,7 +8,6 @@
 // function to send a message to a channel
 void Bot::sendMessageToChannel(const std::string &target, const std::string &message) {
     sendCommand("PRIVMSG " + target + " :" + message + "\r\n");
-    std::cout << "Sent message to " << target << ": " << message << std::endl;
 }
 
 // function to send a command to the server
@@ -16,7 +15,6 @@ void Bot::sendCommand(const std::string &command) {
     if (send(_serSocketFd, command.c_str(), command.size(), 0) == -1) {
         throw std::runtime_error("Failed to send command: " + command);
     }
-    std::cout << "Sent command: " << command;
 }
 
 // function to load quotes from a file
@@ -88,8 +86,6 @@ void Bot::listenToServer() {
         }
 
         std::string message(buffer);
-        std::cout << "Server message: " << message;
-
         if (message.find("PING") == 0) {
             std::string pongResponse = "PONG " + message.substr(5) + "\r\n";
             sendCommand(pongResponse);
@@ -128,6 +124,7 @@ void Bot::joinServer() {
 
 // function to initialize the bot
 void Bot::botInit() {
+    try {
     std::cout << "Bot initialized with NICK: " << _nick << " and USER: " << _user << std::endl;
     joinServer();
     std::string channel = "#IA";
@@ -136,4 +133,8 @@ void Bot::botInit() {
     std::string welcomeMessage = "Hello, I'm FiceloBot, and I'm here to help!";
     sendMessageToChannel(channel, welcomeMessage);
     listenToServer();
+    }
+    catch(std::exception &e){
+        std::cout << e.what() << std::endl;
+    }
 }
