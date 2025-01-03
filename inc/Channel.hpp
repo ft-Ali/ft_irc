@@ -66,7 +66,7 @@ class Channel{
 		bool checkWhiteList(Client *client);
 		void addToWhiteList(Client *client);
 		void removeToWhiteList(Client *client);
-		void broadcastInfoMessage(std::string& message);
+		void broadcastInfoMessage(const std::string& message);
 		bool checkBanList(Client *client);
 		void addBanList(Client *client);
 		void removeBanList(Client *client);

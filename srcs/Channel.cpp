@@ -2,7 +2,7 @@
 #include "../inc/Server.hpp"
 
 Channel::Channel(Client *client,const std::string  &ChannelName) : _name(ChannelName), _topic(""), _key("")
- ,_maxMembers(200), _editTopic(false), _invitOnly(false), _isOperator(false) {
+ ,_maxMembers(200), _editTopic(true), _invitOnly(false), _isOperator(false) {
 
     _members.push_back(client);
     _operatorList.push_back(client);
@@ -10,7 +10,7 @@ Channel::Channel(Client *client,const std::string  &ChannelName) : _name(Channel
 };
 
 Channel::Channel(Client *client, const std::string  &ChannelName, const std::string &key) : _name(ChannelName), _topic(""), _key(key),
-  _maxMembers(200),_editTopic(false), _invitOnly(false), _isOperator(false) {
+  _maxMembers(200),_editTopic(true), _invitOnly(false), _isOperator(false) {
 
     _members.push_back(client);
     _operatorList.push_back(client);
@@ -204,28 +204,32 @@ bool Channel::checkListMembers(Client *client){
 bool Channel::parseChannelName(Client *client){
 	size_t start = _name.find_first_not_of(' ');
     if (start == std::string::npos) {
-        sendClientResponse(client, ":server_name 476 * :Channel name cannot be empty or only spaces\r\n");
+        sendClientResponse(client, ":[IRC] 476" + _name +" :Channel name cannot be empty or only spaces\r\n");
         return false;
     }
 	std::string trimName = _name.substr(start);
-	if(trimName.size() > 50){
-		sendClientResponse(client, ":server_name 476 " + trimName + "Channel name is too long\r\n");
+	if(_name[0] != '#'){
+		sendClientResponse(client, ":[IRC] 476 " + trimName + " Channel name must start with '#'\r\n");
 	return false;
 	}
-	if(trimName[0] != '#'){
-		sendClientResponse(client, ":server_name 476 " + trimName + "Channel name must start with '#'\r\n");
+	if (trimName.size() == 0){
+        sendClientResponse(client, ":[IRC] 476" + _name +" :Channel name cannot be empty or only spaces\r\n");
+        return false;
+    }
+	if(trimName.size() > 50){
+		sendClientResponse(client, ":[IRC] 476 " + trimName + " Channel name is too long\r\n");
 	return false;
 	}
 	if(trimName.find(' ') != std::string::npos){
-		sendClientResponse(client, ":server_name 476 " + trimName + "Channel name contains invalid spaces\r\n");
+		sendClientResponse(client, ":[IRC] 476 " + trimName + " Channel name contains invalid spaces\r\n");
 	return false;
 	}
 	if(trimName.find("^G") != std::string::npos){
-		sendClientResponse(client, ":server_name 476 " + trimName + "Channel name contains invalid characters\n");
+		sendClientResponse(client, ":[IRC] 476 " + trimName + " Channel name contains invalid characters\n");
 	return false;
 	}
 	if(trimName.find(',') != std::string::npos){
-		sendClientResponse(client, ":server_name 476 " + trimName + "Channel name contains commas\r\n");
+		sendClientResponse(client, ":[IRC] 476 " + trimName + " Channel name contains commas\r\n");
 	return false;
 	}
 	_name = trimName;
@@ -242,7 +246,7 @@ void Channel::broadcastMessage(Client* sender, const std::string& msg) {
     }
 }
 
-void Channel::broadcastInfoMessage(std::string& message) {
+void Channel::broadcastInfoMessage(const std::string& message) {
     for (std::vector<Client*>::iterator it = _members.begin(); it != _members.end(); ++it) {
         Client* member = *it;
         send(member->getFd(), message.c_str(), message.size(), 0);

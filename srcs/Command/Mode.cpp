@@ -9,13 +9,12 @@
 
 void Server::manageMode(std::string &cmd, Client *client) {
     std::vector<std::string> cmdMode = splitArg(cmd, ' ');
-    if (!cmdMode.size()) {
-        sendClientResponse(client, ":server_name 461 " + client->getNickName() + " MODE :Not enough parameters\r\n");
+    if (cmdMode.size() < 2) {
+        sendClientResponse(client, ":[IRC] 461 " + client->getNickName() + " MODE :Not enough parameters\r\n");
         return;
     }
     Channel *channel = getChannelByName(cmdMode[1]);
     if (!channel) {
-        sendClientResponse(client, ":server_name 403 " + cmdMode[1] + " :No such channel\r\n");
         return;
     }
     std::string mode = (cmdMode.size() > 2) ? cmdMode[2] : "";
@@ -25,16 +24,24 @@ void Server::manageMode(std::string &cmd, Client *client) {
         channel->broadcastInfoMessage(currentModes);
         return;
     }
-    handleModeActions(mode, param, client, channel);
-    std::string updatedModes = ":" + client->getNickName() + " MODE " + channel->getName() + " :" + channel->getModes() + "\r\n";
-    channel->broadcastInfoMessage(updatedModes);
+    if(!channel->checkListMembers(client)){
+        sendClientResponse(client, ":[IRC] 441 " + client->getNickName() + " MODE" + channel->getName() + " :They aren't on that channel\r\n");
+        return;
+    }
+    if(channel->checkOperatorList(client)){ 
+        handleModeActions(mode, param, client, channel);
+        std::string updatedModes = ":" + client->getNickName() + " MODE " + channel->getName() + " :" + channel->getModes() + "\r\n";
+        channel->broadcastInfoMessage(updatedModes);
+    }
+    else
+        sendClientResponse(client, ":[IRC] 482 " + channel->getName() + " MODE :You're not channel operator\r\n");
 }
 
 
 void Server::handleModeActions(const std::string &mode, std::string &param, Client *client, Channel *channel) {
     char sign = mode[0];
     if (sign != '+' && sign != '-') {
-        sendClientResponse(client, ":server_name 501 " + client->getNickName() + " :Unknown MODE flag\r\n");
+        sendClientResponse(client, ":[IRC] 501 " + client->getNickName() + " MODE :Unknown MODE flag\r\n");
         return;
     }
 
@@ -55,7 +62,7 @@ void Server::handleModeActions(const std::string &mode, std::string &param, Clie
                 handleOperatorMode(sign, param, client, channel);
                 break;
             default:
-                sendClientResponse(client, ":server_name 501 " + client->getNickName() + " :Unknown MODE flag\r\n");
+                sendClientResponse(client, ":[IRC] 501 " + client->getNickName() + " MODE :Unknown MODE flag\r\n");
                 return;
         }
     }
@@ -80,7 +87,7 @@ void Server::handleKeyMode(char sign, std::string &param, Client *client, Channe
     } else if (sign == '-') {
         channel->undoKey();
     } else {
-        sendClientResponse(client, ":server_name 461 " + client->getNickName() + " MODE :Key parameter required\r\n");
+        sendClientResponse(client, ":[IRC] 461 " + client->getNickName() + " MODE :Key parameter required\r\n");
     }
     channel->addMode('k', sign);
 }
@@ -90,14 +97,14 @@ void Server::handleLimitMode(char sign, const std::string &param, Client *client
         size_t limit = 0;
         std::stringstream ss(param);
         if (!(ss >> limit) || limit == 0 || limit > 500) {
-            sendClientResponse(client, ":server_name 501 " + client->getNickName() + " :Invalid channel size\r\n");
+            sendClientResponse(client, ":[IRC] 501 " + client->getNickName() + " MODE :Invalid channel size\r\n");
             return;
         }
         channel->setMaxMembers(limit);
     } else if (sign == '-') {
         channel->setMaxMembers(200);
     } else {
-        sendClientResponse(client, ":server_name 461 " + client->getNickName() + " MODE :Limit parameter required\r\n");
+        sendClientResponse(client, ":[IRC] 461 " + client->getNickName() + " MODE :Limit parameter required\r\n");
     }
     channel->addMode('l', sign);
 }
@@ -112,7 +119,7 @@ void Server::handleOperatorMode(char sign, std::string &param, Client *client, C
         channel->setOperator(targetClient);
     } else if (sign == '-') {
         if (channel->getSizeOpeList() == 1) {
-            sendClientResponse(client, ":server_name 485 " + client->getNickName() + " :Cannot remove the last operator\r\n");
+            sendClientResponse(client, ":[IRC] 485 " + client->getNickName() + " MODE :Cannot remove the last operator\r\n");
             return;
         }
         channel->removeOperator(targetClient);
