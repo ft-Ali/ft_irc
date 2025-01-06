@@ -3,49 +3,60 @@
 void Server::handlePrivMsg(const std::string& line, int clientFd) {
    std::cout << "nous " << line << std::endl;
     std::string clientName = getClientByFd(clientFd);
-    size_t pos = line.find("PRIVMSG");
-    std::string message = line.substr(pos + 8);
-    size_t spacePos = message.find(' ');
+    // size_t pos = line.find("PRIVMSG");
+    // std::cout<< "pos " << pos << std::endl;
+    // std::string message = line.substr(pos + 8);
+    // size_t spacePos = message.find(' ');
     
-    if (spacePos == std::string::npos) {
-        std::string response = "ERROR: Invalid PRIVMSG format.\n";
-        send(clientFd, response.c_str(), response.size(), 0);
+    // if (spacePos == std::string::npos) {
+    //     std::string response = "ERROR: Invalid PRIVMSG format.\n";
+    //     send(clientFd, response.c_str(), response.size(), 0);
+    //     return;
+    // }
+
+    // std::string target = message.substr(0, spacePos);
+    // std::string msg = message.substr(spacePos + 1);
+    // msg.erase(msg.find_last_not_of("\r\n") + 1);
+
+    std::vector<std::string> cmd = splitArg(line, ' ');
+    if(cmd.size() < 3){
+        std::string rep = ":[IRC] 461  :Not enough parameters\r\n";
+        send(clientFd, rep.c_str(), rep.size(), 0);
         return;
     }
 
-    std::string target = message.substr(0, spacePos);
-    std::string msg = message.substr(spacePos + 1);
-    msg.erase(msg.find_last_not_of("\r\n") + 1);
+    std::string target = cmd[1];
+    std::string msg ;
+    for(size_t i = 2; i < cmd.size();++i){
+        msg += cmd[i] +' ';   
+    }
 
     if (target[0] == '#' ) {
         Channel* channel = getChannelByName(target);
         Client* client = getClientByName(clientName);
-        if (channel && channel->checkListMembers(client)) {
+        if(!client || !channel){
+            std::string response = ":[IRC] 401 " + clientName + " " + target + " :No such nick/channel\r\n";
+            send(clientFd, response.c_str(), response.size(), 0);
+        }
+        else if (channel->checkListMembers(client)) {
             if (channel->checkOperatorList(client)) 
                 clientName = "@" + clientName;
             channel->broadcastMessage(client, msg);
-        } else {
-            std::string response = ":server_name 403 " + clientName + " " + target + " :No such channel\r\n";
-            send(clientFd, response.c_str(), response.size(), 0);
-        }
-    }else {  
-    Client* targetClient = getClientByName(target);
-    if (targetClient) {
-        std::string response = ":" + clientName + " PRIVMSG " + target + " :" + msg + "\r\n";
-        send(targetClient->getFd(), response.c_str(), response.size(), 0);
-    } else {
-        Channel* channel = getChannelByName(target);
-        if (channel) {
-            std::string response = ":" + clientName + " PRIVMSG " + target + " :" + msg + "\r\n";
-            channel->broadcastMessage(targetClient, msg);
-            std::string windowCommand = ":server_name NOTICE " + clientName + " :/window goto " + target + "\r\n";
-            send(targetClient->getFd(), windowCommand.c_str(), windowCommand.size(), 0);
-        } else {
-            std::string response = ":server_name 401 " + clientName + " " + target + " :No such nick/channel\r\n";
-            send(clientFd, response.c_str(), response.size(), 0);
         }
     }
-}
+    else {  
+        Client* targetClient = getClientByName(target);
+        if (!targetClient) {
+            std::string response = ":[IRC] 401 " + clientName + " " + target + " :No such nick\r\n";
+        std::cout << "popo\n";
+            send(clientFd, response.c_str(), response.size(), 0);
+        } 
+        else {
+            std::string response = ":" + clientName + " PRIVMSG " + target + " :" + msg + "\r\n";
+            send(targetClient->getFd(), response.c_str(), response.size(), 0);
+        }
+        
+    }
 
 }
 
@@ -159,50 +170,61 @@ void Server::handleUser(int clientFd) {
 Server* Server::instance = NULL;
 
 void Server::closeServer() {
-if (_serSocketFd != -1) {
-    close(_serSocketFd);
-    std::cout << "Server socket closed." << std::endl;
-}
-for (size_t i = 0; i < fds.size(); ++i) {
-    close(fds[i].fd);
-    std::cout << "Client FD " << fds[i].fd << " closed." << std::endl;
-}
-for (size_t i = 0; i < _clients.size(); ++i) 
-    delete _clients[i];
-_clients.clear();
-if(!_channels.empty()){ 
-    for (size_t i = 0; i < _channels.size(); ++i) {
-        if (_channels[i] != NULL) { 
-            delete _channels[i]; 
-            _channels[i] = NULL; 
+    static bool isClosing = false;
+    if (isClosing) 
+        return;
+    isClosing = true;
+    _isRunning = false;
+
+    if (_serSocketFd != -1) {
+        std::cout << "Closing server socket FD: " << _serSocketFd << std::endl;
+        close(_serSocketFd);
+        _serSocketFd = -1;
+    }
+    for (size_t i = 0; i < fds.size(); ++i) {
+        if (fds[i].fd != -1) {
+            std::cout << "Closing client FD: " << fds[i].fd << std::endl;
+            close(fds[i].fd);
+            fds[i].fd = -1;
         }
     }
-}
-_channels.clear();
-_authenticatedClients.clear();
-_clientRegistered.clear();
-_clientUsers.clear();
-_clientNicks.clear();
-std::vector<struct pollfd>().swap(fds);
+    for (size_t i = 0; i < _clients.size(); ++i) {
+        delete _clients[i];
+    }
+    _clients.clear();
+    for (size_t i = 0; i < _channels.size(); ++i) {
+        delete _channels[i];
+    }
+    _channels.clear();
+
+    _authenticatedClients.clear();
+    _clientRegistered.clear();
+    _clientUsers.clear();
+    _clientNicks.clear();
+
+    std::cout << "Server resources have been cleaned up." << std::endl;
 }
 
+
+
 void Server::signalHandler(int signal) {
+     if (instance == NULL) {
+        std::cerr << "Server instance is NULL. Cannot handle signal." << std::endl;
+        return;
+    }
     if(signal == SIGQUIT) {
 		std::cout << std::endl;
 		std::cout << "SIGQUIT received. Closing server." << std::endl;
 		instance->closeServer();
-		// exit(0);
 	}
 	else if(signal == SIGINT) {
 		std::cout << std::endl;
 		std::cout << "SIGINT received. Closing server." << std::endl;
 		instance->closeServer();
-		// exit(0);
 	}
 }
 
 void Server::handleCap(int clientFd, const std::string& message) {
-    // Si le client n'est pas authentifié, ne répondre pas aux commandes CAP
     if (_authenticatedClients.find(clientFd) == _authenticatedClients.end() || !_authenticatedClients[clientFd]) {
         std::string response = "ERROR: Authentication required.\n";
         send(clientFd, response.c_str(), response.size(), 0);
@@ -215,7 +237,6 @@ void Server::handleCap(int clientFd, const std::string& message) {
         std::cout << "Sent CAP LS response to client FD " << clientFd << std::endl;
     }
     else if (message.find("CAP REQ") == 0) {
-        // Le client demande une ou plusieurs capacités spécifiques
         size_t pos = message.find(":");
         std::string requestedCaps = message.substr(pos + 1);
         requestedCaps.erase(requestedCaps.find_last_not_of(" \r\n") + 1);
@@ -262,7 +283,8 @@ void Server::handleClientMessage(int i) {
 
     buffer[ret] = '\0'; // Null-terminate the received message
     std::string message(buffer);
-    std::cout << "Received message (" << _clients[clientFd -4]->getUserName()<< ")" << message  << std::endl;
+    if(_clients[clientFd-4])
+        std::cout << "Received message (" << _clients[clientFd -4]->getUserName()<< ")" << message  << std::endl;
 
     std::istringstream stream(message);
     std::string line;
@@ -315,19 +337,19 @@ void Server::handleClientMessage(int i) {
                 std::cout << "channel left : " << _channels[j]->getName() << std::endl;
                 j++;
                 }
+                int k=0;
+              for (std::vector<Client*>::iterator it = _clients.begin(); it != _clients.end(); ++it) {
+                std::cout << "members : " << _clients[k]->getNickName() << std::endl;
+                k++;
+                }
         send(clientFd, pong.c_str(), pong.size(), 0);
         } else if (line.find("QUIT") == 0) {
-            std::string response = "Goodbye!\n";
-            send(clientFd, response.c_str(), response.size(), 0);
-            close(clientFd);
-            _authenticatedClients.erase(clientFd);
-            _clientNicks.erase(clientFd);
-            _clientRegistered.erase(clientFd);
-            fds.erase(fds.begin() + i);
+            handleQuit(clientFd, client);
             return;
         }
+
         else {
-            std::string response = ":server_name 421 " + client->getNickName() + " '" + line + "' :Unknown command\r\n";
+            std::string response = ":[IRC] 421 " + client->getNickName() + " '" + line + "' :Unknown command\r\n";
             send(clientFd, response.c_str(), response.size(), 0);
         }
     }
@@ -349,18 +371,6 @@ void Server::handleNewConnection() {
     client.events = POLLIN;
     client.revents = 0;
     fds.push_back(client);
-
-    // for (std::map<int, std::string>::const_iterator it = _clientUsers.begin(); it != _clientUsers.end(); ++it) {
-    // if (it->second == _clientUsers[clientFd]) {
-    //         std::string response = "ERROR: Username already in use.\n";
-    //         send(clientFd, response.c_str(), response.size(), 0);
-    //         close(clientFd);
-    //         fds.pop_back();
-    //         return ;
-    //     }
-    // }
-
-
     _clientNicks[clientFd] = "";
     _clientUsers[clientFd] = "";
     _clients.push_back(new Client(clientFd, clientPort, clientIp, "", ""));
@@ -372,21 +382,22 @@ void Server::handleNewConnection() {
 
 void Server::serverLoop() {
 
-	while (true) {
-		if (poll(fds.data(), fds.size(), -1) == -1) // -1 -> infinite timeout
-			throw(std::runtime_error("error: poll() failed"));
+	while (_isRunning) {
+	
+            if (poll(fds.data(), fds.size(), -1) == -1) // -1 -> infinite timeout
+                throw(std::runtime_error("error: poll() failed"));
 
-		for (size_t i = 0; i < fds.size(); ++i) { // loop through all fds (clients)
-			if (fds[i].revents & POLLIN) { // POLLIN -> there is data to read
-
-                if (fds[i].fd == _serSocketFd) { // new connection
-					handleNewConnection();
-				} else {
-					handleClientMessage(i); // handle client message
-				}
-			}
-		}
-	}
+            for (size_t i = 0; i < fds.size(); ++i) { // loop through all fds (clients)
+                if (fds[i].revents & POLLIN) { // POLLIN -> there is data to read
+                    if (fds[i].fd == _serSocketFd) { // new connection
+                        handleNewConnection();
+                    } else {
+                        handleClientMessage(i); // handle client message
+                    }
+                }
+            }
+        }
+    
 }
 
 void Server::serverInit() {
@@ -432,4 +443,21 @@ Client *Server::getClientByFds(const int &clientFd){
             return _clients[i];
     }
 	return NULL;
+}
+
+void Server::removePollFd(int clientFd) {
+    for (std::vector<pollfd>::iterator it = fds.begin(); it != fds.end(); ++it) {
+        if (it->fd == clientFd) {
+            fds.erase(it); // Supprime l'entrée associée
+            break;
+        }
+    }
+}
+
+void Server::closeClient(int clientFd) {
+    // Ferme le descripteur de fichier
+    close(clientFd);
+
+    // Supprime le descripteur de fichier de _pollFds
+    removePollFd(clientFd);
 }

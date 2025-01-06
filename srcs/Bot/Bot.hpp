@@ -33,10 +33,10 @@ private:
 	std::string _ip;
     std::string _nick;
     std::string _user;
+    int _serSocketBot;
 
 public:
-    Bot(int port, std::string ip, std::string nick, std::string user, std::string pass)
-    : Server(port, pass), _ip(ip), _nick(nick), _user(user) {}
+    Bot(int port, std::string ip, std::string nick, std::string user, std::string pass) : Server(port, pass), _ip(ip), _nick(nick), _user(user), _serSocketBot(-1) {}
     ~Bot() {}
 
     void botInit();
@@ -47,4 +47,6 @@ public:
     void sendCommand(const std::string &command);
     void joinServer();
     void listenToServer();
+   void closeConnection();
+   void signalHandler(int signal);
 };

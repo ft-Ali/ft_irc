@@ -2,11 +2,11 @@
 #include "../../inc/Server.hpp"
 
  void Server::processJoin(std::string name, const std::string& message) {
-    
     std::vector<std::string> cmd = splitArg(message, ' ');
     Client *client = getClientByName(name);
     if (!client) {
-     sendClientResponse(client, ":[IRC] 403 " + name + " :No such client\r\n");
+    //  sendClientResponse(client, ":[IRC] 403 " + name + " :No such client\r\n");
+        std::cout << "koooo \n";
         return;
     }
     if (cmd.size() < 2 || cmd.size() > 3){
@@ -15,9 +15,6 @@
     }
     std::string channelName = cmd[1];
     std::string password = (cmd.size() > 2) ? cmd[2] : ""; 
-    std::cout << "password " << password << std::endl;
-    std::cout << "chname " << channelName << std::endl;
-
     cmdJoin(channelName, password, client);
 } 
 
@@ -49,7 +46,6 @@ void Server::handleSingleJoin(std::string &channelName, std::string &key, Client
     }
 
     Channel* channel = NULL;
-    std::cout << "channel name " << channelName << std::endl;
     if (!channelExist(channelName)) {
     if (key.empty())
         channel = new Channel(client, channelName);

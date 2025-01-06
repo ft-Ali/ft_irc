@@ -97,8 +97,6 @@ void Channel::addMode(char mode, char sign) {
             break;
         }
     }
-
-    // Ajoute le mode avec le nouveau signe
     _modes.push_back(fullMode);
 }
 

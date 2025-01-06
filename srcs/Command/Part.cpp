@@ -28,6 +28,8 @@ void Server::cmdPart(std::string& msg, std::vector<std::string>& channelNames, C
     for (std::vector<std::string>::iterator it = channelNames.begin(); it != channelNames.end(); ++it) {
         Channel* channel = getChannelByName(*it);
         if (!channel) {
+            std::string response = ":[IRC] 401 " + client->getNickName() + " " + *it + " :No such channel\r\n";
+            send(client->getFd(), response.c_str(), response.size(), 0);
             continue;
         }
         if (!channel->checkListMembers(client)) {

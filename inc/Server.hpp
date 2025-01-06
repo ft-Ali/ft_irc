@@ -35,12 +35,14 @@ class Server {
 		std::map<int, std::string> _clientUsers; //-> map of client fds and users
 		std::map<int, std::string> _clientNicks; //-> map of client fds and nicks
 		std::string _ip;
+		bool _isRunning;
 	public:
 		Server(int port, std::string password) : _port(port), _password(password), _serSocketFd(-1), _isConnected(false), fds(0) {
 			if(instance != NULL) {
 				throw(std::runtime_error("error: Server instance already exists"));
 			}
 			instance = this;
+			_isRunning = true;
 		};
 		~Server() {
 			closeServer();
@@ -82,6 +84,9 @@ class Server {
 		void handleBasicMode(char mode, char sign, Client *client, Channel *channel);
 		void handleTopic(int clientFd, std::string message);
 		void clientToOperator(Client *client,Channel *channel);
+		void handleQuit(int clientFd, Client *client);
+		void closeClient(int clientFd);
+		void removePollFd(int clientFd);
 		/***************************************************************************************/
 
 };

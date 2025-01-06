@@ -12,7 +12,7 @@ void Bot::sendMessageToChannel(const std::string &target, const std::string &mes
 
 // function to send a command to the server
 void Bot::sendCommand(const std::string &command) {
-    if (send(_serSocketFd, command.c_str(), command.size(), 0) == -1) {
+    if (send(_serSocketBot, command.c_str(), command.size(), 0) == -1) {
         throw std::runtime_error("Failed to send command: " + command);
     }
 }
@@ -78,7 +78,7 @@ void Bot::listenToServer() {
 
     while (true) {
         memset(buffer, 0, sizeof(buffer));
-        int bytesReceived = recv(_serSocketFd, buffer, sizeof(buffer) - 1, 0);
+        int bytesReceived = recv(_serSocketBot, buffer, sizeof(buffer) - 1, 0);
 
         if (bytesReceived <= 0) {
             std::cerr << "Connection closed by server or error occurred." << std::endl;
@@ -99,24 +99,41 @@ void Bot::listenToServer() {
 // function to join the server
 void Bot::joinServer() {
     struct sockaddr_in serverAddr;
+    struct pollfd communication;
+
+    // Si une socket est déjà ouverte, la fermer proprement avant de tenter de se reconnecter
+    if (_serSocketBot != -1) {
+        close(_serSocketBot);  // Ferme la socket existante si elle est encore ouverte
+        std::cout << "Socket closed before reconnecting." << std::endl;
+    }
+
     serverAddr.sin_family = AF_INET;
     serverAddr.sin_port = htons(_port);
 
-    _serSocketFd = socket(AF_INET, SOCK_STREAM, 0);
-    if (_serSocketFd == -1) {
+    // Crée une nouvelle socket
+    _serSocketBot = socket(AF_INET, SOCK_STREAM, 0);
+    if (_serSocketBot == -1) {
         throw std::runtime_error("Socket creation failed");
     }
+    // _serSocketBot += 1;
     if (inet_pton(AF_INET, _ip.c_str(), &serverAddr.sin_addr) <= 0) {
         throw std::runtime_error("Invalid IP address: " + _ip);
     }
 
-    if (connect(_serSocketFd, (struct sockaddr *)&serverAddr, sizeof(serverAddr)) == -1) {
+    // Tentative de connexion
+    if (connect(_serSocketBot, (struct sockaddr *)&serverAddr, sizeof(serverAddr)) == -1) {
         perror("Connection error");
         throw std::runtime_error("Connection to server failed");
     }
-
     std::cout << "Connected to server: " << _ip << " on port " << _port << std::endl;
-    _isConnected = true;
+
+    // Ajouter le descripteur de socket à la liste des descripteurs surveillés
+    communication.fd = _serSocketBot;
+    communication.events = POLLIN;
+    communication.revents = 0;
+    fds.push_back(communication);
+
+    // Envoie des commandes initiales après la connexion
     sendCommand("PASS " + _password + "\r\n");
     sendCommand("NICK " + _nick + "\r\n");
     sendCommand("USER " + _user + " 0 * :" + _user + "\r\n");
