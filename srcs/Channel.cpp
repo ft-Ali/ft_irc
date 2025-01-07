@@ -127,7 +127,7 @@ void Channel::removeClientList(std::vector<Client*>& vec, Client *client){
 	std::vector<Client*>::iterator it = std::find(vec.begin(), vec.end(), client);
     if (it != vec.end())
         vec.erase(it);
-
+	
 }
 
 void Channel::removeMember( Client *client){
@@ -169,7 +169,6 @@ void Channel::undoKey() {this->_key.clear();}
 
 /*******************************CHECK****************************/
 bool Channel::isOnList(const std::vector<Client*>& vec, Client *client){
-
 	std::vector<Client *>::const_iterator it = std::find(vec.begin(), vec.end(), client);
 	if(it != vec.end())
 		return true;

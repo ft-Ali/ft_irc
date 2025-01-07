@@ -62,13 +62,17 @@ void Server::handleSingleJoin(std::string &channelName, std::string &key, Client
         client->setJoinedChannels(channel);
         client->setCurrentChannel(channel);
         clientToOperator(client, channel);
+            std::cout << "channel size " << channel->size() << std::endl; 
+
     } else {
         channel = getChannelByName(channelName);
         if (!channel) {
             sendClientResponse(client, ":[IRC] 403 '" + channelName + "' :No such channel\r\n");
             return;
         }
-        checkRestriction(*channel, client, key);
+        checkRestriction(channel, client, key);
+            std::cout << "channel size joined" << channel->size() << std::endl; 
+
     }
 }
 
@@ -96,36 +100,36 @@ void Server::clientToOperator(Client *client,Channel *channel){
 }
 
 
-void	Server::checkRestriction(Channel &channel, Client *client, std::string &key){
+void	Server::checkRestriction(Channel *channel, Client *client, std::string &key){
 	
-    if (channel.checkBanList(client)) {
-        std::string response = ":[IRC] 474 " + client->getNickName() + " " + channel.getName() + " :Cannot join channel (+b)\r\n";
+    if (channel->checkBanList(client)) {
+        std::string response = ":[IRC] 474 " + client->getNickName() + " " + channel->getName() + " :Cannot join channel (+b)\r\n";
         send(client->getFd(), response.c_str(), response.size(), 0);
         return;
     }
 
-    if (channel.getInvitOnly() && !channel.checkWhiteList(client)) {
-        std::string response = ":[IRC] 441 " + client->getNickName()+ " " + channel.getName() + " :You are not invited(+i)\r\n";
+    if (channel->getInvitOnly() && !channel->checkWhiteList(client)) {
+        std::string response = ":[IRC] 441 " + client->getNickName()+ " " + channel->getName() + " :You are not invited(+i)\r\n";
         send(client->getFd(), response.c_str(), response.size(), 0);
         return;
     }
 
-    if (channel.size() >= channel.getMaxMembers()) {
-        std::string response = ":[IRC] 471 " + client->getNickName() + " " + channel.getName() + " :Cannot join channel (+l)\r\n";
+    if (channel->size() >= channel->getMaxMembers()) {
+        std::string response = ":[IRC] 471 " + client->getNickName() + " " + channel->getName() + " :Cannot join channel (+l)\r\n";
         send(client->getFd(), response.c_str(), response.size(), 0);
         return;
     }
-	if (!channel.getKey().empty()) {
-        if (key != channel.getKey()) {
-            std::string response = ":[IRC] 475 " + client->getNickName() + " " + channel.getName() + " :Invalid channel key\r\n";
+	if (!channel->getKey().empty()) {
+        if (key != channel->getKey()) {
+            std::string response = ":[IRC] 475 " + client->getNickName() + " " + channel->getName() + " :Invalid channel key\r\n";
             send(client->getFd(), response.c_str(), response.size(), 0);
             return;
         }
     }
-	channel.addListMember(client);
-    client->setJoinedChannels(&channel);
-    client->setCurrentChannel(&channel);
-    clientToOperator(client, &channel);
+	channel->addListMember(client);
+    client->setJoinedChannels(channel);
+    client->setCurrentChannel(channel);
+    clientToOperator(client, channel);
 
 }
 

@@ -63,7 +63,7 @@ class Server {
 		/************************************COMMAND********************************************/
 		void cmdJoin(std::string &nameChannel, std::string &key, Client *client);
 		bool channelExist(const std::string& name);
-		void checkRestriction(Channel &channel, Client *client, std::string &key);
+		void checkRestriction(Channel *channel, Client *client, std::string &key);
 		void handleSingleJoin(std::string &channelName, std::string &key, Client *client);
 		Channel *getChannelByName(std::string &name);
 		void    cmdPart(std::string &message, std::vector<std::string>&arg ,Client *client);
@@ -84,7 +84,7 @@ class Server {
 		void handleBasicMode(char mode, char sign, Client *client, Channel *channel);
 		void handleTopic(int clientFd, std::string message);
 		void clientToOperator(Client *client,Channel *channel);
-		void handleQuit(int clientFd, Client *client);
+		void handleQuit(int clientFd, Client *client, bool free);
 		void closeClient(int clientFd);
 		void removePollFd(int clientFd);
 		/***************************************************************************************/

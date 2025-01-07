@@ -1,9 +1,11 @@
 #include "../../inc/Channel.hpp"
 #include "../../inc/Server.hpp"
 
-void Server::handleQuit(int clientFd, Client *client) {
+void Server::handleQuit(int clientFd, Client *client,bool free) {
     for (size_t i = 0; i < _channels.size(); ++i) {
         if (_channels[i]->checkListMembers(client)) {
+            
+            std::cout << "channel joined " << _channels[i]->getName() << std::endl;
             _channels[i]->removeMember(client);
         }
     }
@@ -16,11 +18,10 @@ void Server::handleQuit(int clientFd, Client *client) {
     _clientRegistered.erase(clientFd);
     _clientUsers.erase(clientFd);
     _clientNicks.erase(clientFd);
-    if(_clients[clientFd-4])
-        delete []_clients[clientFd-4];
     std::string response = "Goodbye!\n";
     send(clientFd, response.c_str(), response.size(), 0);
-   closeClient(clientFd);
+    if(free)
+        closeClient(clientFd);
 }
 
 void Server::removePollFd(int clientFd) {
