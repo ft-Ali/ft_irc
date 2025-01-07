@@ -31,7 +31,6 @@ void Server::handlePrivMsg(const std::string& line, int clientFd) {
         Client* targetClient = getClientByName(target);
         if (!targetClient) {
             std::string response = ":[IRC] 401 " + clientName + " " + target + " :No such nick\r\n";
-        std::cout << "popo\n";
             send(clientFd, response.c_str(), response.size(), 0);
         } 
         else {
@@ -312,7 +311,7 @@ void Server::handleClientMessage(int i) {
             send(clientFd, pong.c_str(), pong.size(), 0);
         } else if (line.find("QUIT") == 0) {
             handleQuit(clientFd, client);
-            return;
+            // return;
         }
         else {
             std::string response = ":[IRC] 421 " + client->getNickName() + " '" + line + "' :Unknown command\r\n";
@@ -349,7 +348,7 @@ void Server::serverLoop() {
 	while (_isRunning) {
 	
             if (poll(fds.data(), fds.size(), -1) == -1)
-                throw(std::runtime_error("Termiated"));
+                throw(std::runtime_error("Terminated"));
 
             for (size_t i = 0; i < fds.size(); ++i) {
                 if (fds[i].revents & POLLIN) {
@@ -409,16 +408,3 @@ Client *Server::getClientByFds(const int &clientFd){
 	return NULL;
 }
 
-void Server::removePollFd(int clientFd) {
-    for (std::vector<pollfd>::iterator it = fds.begin(); it != fds.end(); ++it) {
-        if (it->fd == clientFd) {
-            fds.erase(it); 
-            break;
-        }
-    }
-}
-
-void Server::closeClient(int clientFd) {
-    close(clientFd);
-    removePollFd(clientFd);
-}

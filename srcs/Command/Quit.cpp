@@ -16,8 +16,24 @@ void Server::handleQuit(int clientFd, Client *client) {
     _clientRegistered.erase(clientFd);
     _clientUsers.erase(clientFd);
     _clientNicks.erase(clientFd);
-
+    if(_clients[clientFd-4])
+        delete []_clients[clientFd-4];
     std::string response = "Goodbye!\n";
     send(clientFd, response.c_str(), response.size(), 0);
    closeClient(clientFd);
+}
+
+void Server::removePollFd(int clientFd) {
+    for (std::vector<pollfd>::iterator it = fds.begin(); it != fds.end(); ++it) {
+        if (it->fd == clientFd) {
+        std::cout << " fd" << it->fd << std::endl;
+            fds.erase(it); 
+            break;
+        }
+    }
+}
+
+void Server::closeClient(int clientFd) {
+    close(clientFd);
+    removePollFd(clientFd);
 }
