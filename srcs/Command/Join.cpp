@@ -5,8 +5,6 @@
     std::vector<std::string> cmd = splitArg(message, ' ');
     Client *client = getClientByName(name);
     if (!client) {
-    //  sendClientResponse(client, ":[IRC] 403 " + name + " :No such client\r\n");
-        std::cout << "koooo \n";
         return;
     }
     if (cmd.size() < 2 || cmd.size() > 3){

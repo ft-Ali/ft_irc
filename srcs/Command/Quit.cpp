@@ -2,8 +2,6 @@
 #include "../../inc/Server.hpp"
 
 void Server::handleQuit(int clientFd, Client *client) {
-    std::cout << "Client FD: " << clientFd << std::endl;
-
     for (size_t i = 0; i < _channels.size(); ++i) {
         if (_channels[i]->checkListMembers(client)) {
             _channels[i]->removeMember(client);
@@ -11,10 +9,9 @@ void Server::handleQuit(int clientFd, Client *client) {
     }
     std::vector<Client*>::iterator it = std::find(_clients.begin(), _clients.end(), client);
     if (it != _clients.end()) {
-        delete *it;           // Libère la mémoire associée au client
-        _clients.erase(it);   // Supprime le pointeur du vecteur
+        delete *it;
+        _clients.erase(it);
     }
-
     _authenticatedClients.erase(clientFd);
     _clientRegistered.erase(clientFd);
     _clientUsers.erase(clientFd);
@@ -23,6 +20,4 @@ void Server::handleQuit(int clientFd, Client *client) {
     std::string response = "Goodbye!\n";
     send(clientFd, response.c_str(), response.size(), 0);
    closeClient(clientFd);
-
-    std::cout << "Client removed successfully." << std::endl;
 }

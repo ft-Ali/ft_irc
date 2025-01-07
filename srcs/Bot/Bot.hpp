@@ -37,7 +37,7 @@ private:
 
 public:
     Bot(int port, std::string ip, std::string nick, std::string user, std::string pass) : Server(port, pass), _ip(ip), _nick(nick), _user(user), _serSocketBot(-1) {}
-    ~Bot() {}
+    ~Bot() {closeConnection();}
 
     void botInit();
     void loadQuotes(const std::string &filePath);
@@ -48,5 +48,4 @@ public:
     void joinServer();
     void listenToServer();
    void closeConnection();
-   void signalHandler(int signal);
 };

@@ -44,7 +44,7 @@ class Server {
 			instance = this;
 			_isRunning = true;
 		};
-		~Server() {
+		virtual ~Server() {
 			closeServer();
 			instance = NULL;
 		};

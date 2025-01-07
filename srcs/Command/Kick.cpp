@@ -39,9 +39,6 @@ void Server::handleKick(Client *client, std::string command){
         response += " :" + message;
     }
     response += "\r\n";
-
-    // channel->broadcastInfoMessage(response);
     sendClientResponse(target, response);
-    // channel->broadcastMessage(client, response);
     channel->removeMember(target);
 }

@@ -82,15 +82,8 @@ void Bot::listenToServer() {
 
         if (bytesReceived <= 0) {
             std::cerr << "Connection closed by server or error occurred." << std::endl;
-            break;
         }
-
         std::string message(buffer);
-        if (message.find("PING") == 0) {
-            std::string pongResponse = "PONG " + message.substr(5) + "\r\n";
-            sendCommand(pongResponse);
-            continue;
-        }
         handleCommand(message);
     }
 }
@@ -99,41 +92,26 @@ void Bot::listenToServer() {
 // function to join the server
 void Bot::joinServer() {
     struct sockaddr_in serverAddr;
-    struct pollfd communication;
 
-    // Si une socket est déjà ouverte, la fermer proprement avant de tenter de se reconnecter
     if (_serSocketBot != -1) {
-        close(_serSocketBot);  // Ferme la socket existante si elle est encore ouverte
+        close(_serSocketBot);
         std::cout << "Socket closed before reconnecting." << std::endl;
     }
-
     serverAddr.sin_family = AF_INET;
     serverAddr.sin_port = htons(_port);
-
-    // Crée une nouvelle socket
     _serSocketBot = socket(AF_INET, SOCK_STREAM, 0);
     if (_serSocketBot == -1) {
         throw std::runtime_error("Socket creation failed");
     }
-    // _serSocketBot += 1;
     if (inet_pton(AF_INET, _ip.c_str(), &serverAddr.sin_addr) <= 0) {
         throw std::runtime_error("Invalid IP address: " + _ip);
     }
 
-    // Tentative de connexion
     if (connect(_serSocketBot, (struct sockaddr *)&serverAddr, sizeof(serverAddr)) == -1) {
         perror("Connection error");
         throw std::runtime_error("Connection to server failed");
     }
     std::cout << "Connected to server: " << _ip << " on port " << _port << std::endl;
-
-    // Ajouter le descripteur de socket à la liste des descripteurs surveillés
-    communication.fd = _serSocketBot;
-    communication.events = POLLIN;
-    communication.revents = 0;
-    fds.push_back(communication);
-
-    // Envoie des commandes initiales après la connexion
     sendCommand("PASS " + _password + "\r\n");
     sendCommand("NICK " + _nick + "\r\n");
     sendCommand("USER " + _user + " 0 * :" + _user + "\r\n");
@@ -145,11 +123,11 @@ void Bot::botInit() {
     std::cout << "Bot initialized with NICK: " << _nick << " and USER: " << _user << std::endl;
     joinServer();
     std::string channel = "#IA";
+    sendCommand("PING\r\n");
     sendCommand("JOIN " + channel + "\r\n");
     std::cout << "Bot has joined channel " << channel << std::endl;
     std::string welcomeMessage = "Hello, I'm FiceloBot, and I'm here to help!";
     sendMessageToChannel(channel, welcomeMessage);
-    listenToServer();
     }
     catch(std::exception &e){
         std::cout << e.what() << std::endl;
