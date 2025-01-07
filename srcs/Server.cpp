@@ -40,8 +40,6 @@ void Server::handlePrivMsg(const std::string& line, int clientFd) {
         if (channel) {
             std::string response = ":" + clientName + " PRIVMSG " + target + " :" + msg + "\r\n";
             channel->broadcastMessage(targetClient, msg);
-            std::string windowCommand = ":server_name NOTICE " + clientName + " :/window goto " + target + "\r\n";
-            send(targetClient->getFd(), windowCommand.c_str(), windowCommand.size(), 0);
         } else {
             std::string response = ":server_name 401 " + clientName + " " + target + " :No such nick/channel\r\n";
             send(clientFd, response.c_str(), response.size(), 0);
@@ -250,9 +248,9 @@ void Server::handleCap(int clientFd, const std::string& message) {
 
 void Server::handleClientMessage(int i) {
     char buffer[1024];
+
     int clientFd = fds[i].fd;
 
-    // Receive the message from the client
     int ret = recv(clientFd, buffer, sizeof(buffer) - 1, 0);
     if (ret <= 0) {
         close(clientFd); // Fermer le FD
@@ -260,6 +258,7 @@ void Server::handleClientMessage(int i) {
         _clientUsers.erase(clientFd); // Supprimer le username associé
         _authenticatedClients.erase(clientFd); // Supprimer l'état d'authentification
         std::cout << "Client FD " << clientFd << " disconnected and cleaned up." << std::endl;
+        return ;
     }
 
     buffer[ret] = '\0'; // Null-terminate the received message
@@ -320,7 +319,6 @@ void Server::handleClientMessage(int i) {
         send(clientFd, pong.c_str(), pong.size(), 0);
         } else if (line.find("QUIT") == 0) {
           handleQuit(clientFd, client, true);
-            return;
         }
         else {
             std::string response = ":server_name 421 " + client->getNickName() + " '" + line + "' :Unknown command\r\n";

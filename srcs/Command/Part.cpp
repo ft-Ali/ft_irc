@@ -3,6 +3,7 @@
 #include <sys/un.h>
 void Server::processPart(Client* client, std::string& command) {
     if (!client) {
+        std::cout << "prout\n";
         return;
     }
     std::string msg = "";
@@ -41,14 +42,15 @@ void Server::cmdPart(std::string& msg, std::vector<std::string>& channelNames, C
                                   " PART " + *it + " :" + msg + "\r\n";
         if (channel->checkOperatorList(client)) {
             channel->removeOperator(client);
+            channel->setNewOperator();
         }
         channel->leaveChannel(client);
         client->removeJoinedChannel(channel);
-        channel->setNewOperator();
         channel->broadcastMessage(client, partMessage);
         if (channel->size() == 0) {
             removeEmptyChannel(channel);
         }
+    std::cout << "olaa\n";
     }
 }
 
