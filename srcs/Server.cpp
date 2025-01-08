@@ -1,21 +1,34 @@
 #include "../inc/Server.hpp"
 
 void Server::handlePrivMsg(const std::string& line, int clientFd) {
+    std::cout << "line " << line << std::endl; 
     std::string clientName = getClientByFd(clientFd);
-    size_t pos = line.find("PRIVMSG");
-    std::string message = line.substr(pos + 8);
-    size_t spacePos = message.find(' ');
-    
-    if (spacePos == std::string::npos) {
-        std::string response = "ERROR: Invalid PRIVMSG format.\n";
-        send(clientFd, response.c_str(), response.size(), 0);
+    std::vector<std::string> cmd = splitArg(line, ' ');
+    if(cmd.size() < 3){
+        std::string rep = ":[IRC] 461  :Not enough parameters\r\n";
+        send(clientFd, rep.c_str(), rep.size(), 0);
         return;
     }
 
-    std::string target = message.substr(0, spacePos);
-    std::string msg = message.substr(spacePos + 1);
-    msg.erase(msg.find_last_not_of("\r\n") + 1);
+    std::string target = cmd[1];
+    std::string msg ;
+    for(size_t i = 2; i < cmd.size();++i){
+        msg += cmd[i] +' ';   
+    }
+    if (msg.find("DCC SEND") == 0) {
+        // Encadrer avec \001
+        std::string dccMessage = "\001" + msg + "\001";
 
+        Client* targetClient = getClientByName(target);
+        if (targetClient) {
+            std::cout << "test\n";
+            std::string response = ":" + clientName + " PRIVMSG " + target + " " + dccMessage + "\r\n";
+            send(targetClient->getFd(), response.c_str(), response.size(), 0);
+        } else {
+            std::string response = ":server_name 401 " + clientName + " " + target + " :No such nick/channel\r\n";
+            send(clientFd, response.c_str(), response.size(), 0);
+        }
+    }
     if (target[0] == '#' ) {
         Channel* channel = getChannelByName(target);
         Client* client = getClientByName(clientName);
@@ -271,12 +284,14 @@ void Server::handleClientMessage(int index) {
                 handlePing(clientFd, line);
             } else if (line.find("QUIT") == 0) {
                 handleQuit(clientFd, client, true);
-            } else {
+            } 
+           else {
                 handleUnknownCommand(client, line);
             }
         }
     }
 }
+
 void Server::disconnectClient(int clientFd, size_t index) {
     std::cout << "Client FD " << clientFd << " disconnected" << std::endl;
   for (size_t i = 0; i < _channels.size(); ++i) {

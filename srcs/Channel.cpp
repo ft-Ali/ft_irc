@@ -237,7 +237,7 @@ void Channel::broadcastMessage(Client* sender, const std::string& msg) {
     for (std::vector<Client*>::iterator it = _members.begin(); it != _members.end(); ++it) {
         Client* member = *it;
         if (member->getFd() != sender->getFd()) {
-            std::string response = ":" + sender->getNickName() + " PRIVMSG " + getName() + " plouf " + msg + "\r\n";
+            std::string response = ":" + sender->getNickName() + " PRIVMSG " + getName() + " " + msg + "\r\n";
             send(member->getFd(), response.c_str(), response.size(), 0);
         }
     }

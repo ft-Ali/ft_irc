@@ -15,7 +15,11 @@
 #include <stdlib.h>
 #include <csignal>
 #include <stdbool.h>
-
+#include <arpa/inet.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <unistd.h>
+#include <fstream>
 #include "Client.hpp"
 #include "Channel.hpp"
 #pragma once
@@ -92,7 +96,9 @@ class Server {
 		void handleUnknownCommand(Client *client, const std::string &line);
 		void sendError(int clientFd, const std::string &message);
 		void handlePing(int clientFd, const std::string &line);
-
+		void handleDCCSend(int clientFd, const std::string& line);
+		void receiveDCCFile(const std::string& fileName, const std::string& ip, int port, size_t fileSize);
+	void handleDCCMessage(int clientFd, const std::string& msg);
 };
 std::vector<std::string> splitArg(const std::string &str, char delimiter);
 void sendClientResponse(Client *client, const std::string &response);

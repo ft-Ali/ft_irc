@@ -19,7 +19,7 @@ void Bot::loadQuotes(const std::string &filePath) {
     std::ifstream file(filePath.c_str());
     if (!file.is_open()) {
         std::cerr << "Error: Could not open file at path: " << filePath << std::endl;
-        throw std::runtime_error("Failed to open quotes file: " + filePath);
+        return ;
     }
     std::string line;
     while (std::getline(file, line)) {
@@ -29,7 +29,7 @@ void Bot::loadQuotes(const std::string &filePath) {
     }
     file.close();
     if (_quotes.empty()) {
-        throw std::runtime_error("No quotes found in file: " + filePath);
+        return ;
     }
     std::cout << "Loaded " << _quotes.size() << " quotes from " << filePath << std::endl;
 }
