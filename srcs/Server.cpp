@@ -103,7 +103,8 @@ void Server::handleNick(int clientFd, const std::string& message) {
     _clientNicks[clientFd] = newNickname;
     size_t i;
     for(i = 0; i < _clients.size() -1;++i){
-
+        if(_clients[i]->getFd() == clientFd)
+            break ;
     }
     _clients[i]->setNickname(newNickname);
     std::string response = ":" + oldNickname + " NICK " + newNickname + "\n";
@@ -123,7 +124,6 @@ void Server::handleUser(int clientFd) {
     _clientRegistered[clientFd] = true;
     size_t i;
     for(i = 0; i < _clients.size() -1;++i){
-
     }
     _clients[i]->setUsername(username);
     _clients[i]->setRegistered(true);
