@@ -19,7 +19,7 @@ void Server::handleInvit(Client *client, std::string command) {
 
     Client *target = getClientByName(targetName);
     if (!target) {
-        sendClientResponse(client, ":[IRC] 401 " + targetName + " :No such nick\r\n");
+        sendClientResponse(client, ":[IRC] 401 " + targetName + " :No such\r\n");
         return;
     }
 

@@ -5,19 +5,16 @@
 // #                UTILS FUNCTIONS                #
 // ###################################################
 
-// function to send a message to a channel
 void Bot::sendMessageToChannel(const std::string &target, const std::string &message) {
     sendCommand("PRIVMSG " + target + " :" + message + "\r\n");
 }
 
-// function to send a command to the server
 void Bot::sendCommand(const std::string &command) {
     if (send(_serSocketBot, command.c_str(), command.size(), 0) == -1) {
         throw std::runtime_error("Failed to send command: " + command);
     }
 }
 
-// function to load quotes from a file
 void Bot::loadQuotes(const std::string &filePath) {
     std::ifstream file(filePath.c_str());
     if (!file.is_open()) {
@@ -37,7 +34,6 @@ void Bot::loadQuotes(const std::string &filePath) {
     std::cout << "Loaded " << _quotes.size() << " quotes from " << filePath << std::endl;
 }
 
-// function to send a random quote to a channel
 void Bot::sendRandomQuote(const std::string &channel) {
     if (_quotes.empty()) {
         std::cerr << "No quotes loaded to send." << std::endl;
@@ -56,7 +52,6 @@ void Bot::sendRandomQuote(const std::string &channel) {
 // ###################################################
 
 
-// function to handle a command received from the server
 void Bot::handleCommand(const std::string &message) {
     size_t privmsgPos = message.find("PRIVMSG");
     if (privmsgPos != std::string::npos) {
@@ -70,9 +65,12 @@ void Bot::handleCommand(const std::string &message) {
             sendRandomQuote(channel);
         }
     }
+       if (message.find("PING") == 0) {
+            std::string pongResponse = "PONG " + message.substr(5) + "\r\n";
+            sendCommand(pongResponse);
+        }
 }
 
-// function to listen to the server for incoming messages
 void Bot::listenToServer() {
     char buffer[1024];
 
@@ -82,23 +80,18 @@ void Bot::listenToServer() {
 
         if (bytesReceived <= 0) {
             std::cerr << "Connection closed by server or error occurred." << std::endl;
+            break;
         }
         std::string message(buffer);
         handleCommand(message);
     }
 }
 
-
-// function to join the server
 void Bot::joinServer() {
     struct sockaddr_in serverAddr;
-
-    if (_serSocketBot != -1) {
-        close(_serSocketBot);
-        std::cout << "Socket closed before reconnecting." << std::endl;
-    }
     serverAddr.sin_family = AF_INET;
     serverAddr.sin_port = htons(_port);
+
     _serSocketBot = socket(AF_INET, SOCK_STREAM, 0);
     if (_serSocketBot == -1) {
         throw std::runtime_error("Socket creation failed");
@@ -111,19 +104,21 @@ void Bot::joinServer() {
         perror("Connection error");
         throw std::runtime_error("Connection to server failed");
     }
+
     std::cout << "Connected to server: " << _ip << " on port " << _port << std::endl;
+    _isConnected = true;
     sendCommand("PASS " + _password + "\r\n");
     sendCommand("NICK " + _nick + "\r\n");
     sendCommand("USER " + _user + " 0 * :" + _user + "\r\n");
 }
 
-// function to initialize the bot
 void Bot::botInit() {
     try {
     std::cout << "Bot initialized with NICK: " << _nick << " and USER: " << _user << std::endl;
     joinServer();
     std::string channel = "#IA";
     sendCommand("PING\r\n");
+
     sendCommand("JOIN " + channel + "\r\n");
     std::cout << "Bot has joined channel " << channel << std::endl;
     std::string welcomeMessage = "Hello, I'm FiceloBot, and I'm here to help!";

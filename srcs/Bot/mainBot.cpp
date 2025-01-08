@@ -1,24 +1,21 @@
 #include "Bot.hpp"
 #include "../../inc/Server.hpp"
 
-// Variable globale pour pointer vers l'instance du bot
 Bot* globalBot = NULL;
 volatile bool shouldClose = false;
 
 void Bot::closeConnection() {
-    if (_serSocketBot != -1) {
-        close(_serSocketBot);
-        _serSocketBot = -1;
-    }
     std::vector<std::string>().swap(_quotes);
+    handleQuit(_serSocketBot,getClientByName(_nick), true);
 }
 
 void signalHandler(int signal) {
     (void)signal;
     if (globalBot) {
         std::cout << "Signal received. Cleaning up bot." << std::endl;
-        globalBot->closeConnection();  // Libérer les ressources du bot
-        shouldClose = true;  // Indiquer qu'il faut fermer le programme proprement
+        globalBot->closeConnection();
+        shouldClose = true;
+        exit (0);
     }
 }
 
@@ -30,18 +27,14 @@ int main(int argc, char** argv) {
 
     try {
         Bot bot(atoi(argv[2]), argv[1], "FiceloBot", "FiceloBot", argv[3]);
-        globalBot = &bot; // Assignation de l'instance du bot à la variable globale
+        globalBot = &bot;
 
-        // Définir le gestionnaire de signaux
-        signal(SIGINT, signalHandler);  // SIGINT (Ctrl+C)
-        signal(SIGQUIT, signalHandler); // SIGQUIT
-
-        // Charger les citations et démarrer le bot
+        signal(SIGINT, signalHandler);
+        signal(SIGQUIT, signalHandler);
         bot.loadQuotes("srcs/Bot/quotes.txt");
         bot.botInit();
         bot.listenToServer();
 
-        // Nettoyage final
         if (shouldClose) {
             std::cout << "Shutting down bot gracefully." << std::endl;
         }

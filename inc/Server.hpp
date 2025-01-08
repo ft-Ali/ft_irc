@@ -88,6 +88,10 @@ class Server {
 		void closeClient(int clientFd);
 		void removePollFd(int clientFd);
 		/***************************************************************************************/
+		void disconnectClient(int clientFd, size_t index);
+		void handleUnknownCommand(Client *client, const std::string &line);
+		void sendError(int clientFd, const std::string &message);
+		void handlePing(int clientFd, const std::string &line);
 
 };
 std::vector<std::string> splitArg(const std::string &str, char delimiter);

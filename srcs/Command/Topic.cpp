@@ -43,8 +43,6 @@ void Server::handleTopic(int clientFd, std::string message) {
             sendClientResponse(client, ":[IRC] 403 " + prompt_channelName + " :No such channel\r\n");
             return;
         }
-
-        // Case 1: No new topic provided
         if ((!prompt_channelName.empty() && newTopic.empty()) || (prompt_channelName.empty() && newTopic.empty())) {
             if (currentChannel->getTopic().empty()) {
                 sendClientResponse(client, ":[IRC] 331 " + client->getNickName() + " " + currentChannel->getName() + " :No topic is set\r\n");

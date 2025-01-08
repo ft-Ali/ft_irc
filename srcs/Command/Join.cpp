@@ -62,16 +62,13 @@ void Server::handleSingleJoin(std::string &channelName, std::string &key, Client
         client->setJoinedChannels(channel);
         client->setCurrentChannel(channel);
         clientToOperator(client, channel);
-            std::cout << "channel size " << channel->size() << std::endl; 
-
     } else {
         channel = getChannelByName(channelName);
         if (!channel) {
-            sendClientResponse(client, ":[IRC] 403 '" + channelName + "' :No such channel\r\n");
+            sendClientResponse(client, ":[IRC] 403 '" + channelName + "' :No such channel name\r\n");
             return;
         }
         checkRestriction(channel, client, key);
-            std::cout << "channel size joined" << channel->size() << std::endl; 
 
     }
 }

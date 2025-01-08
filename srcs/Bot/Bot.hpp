@@ -47,5 +47,5 @@ public:
     void sendCommand(const std::string &command);
     void joinServer();
     void listenToServer();
-   void closeConnection();
+    void closeConnection();
 };
