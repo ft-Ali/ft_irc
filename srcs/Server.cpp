@@ -1,7 +1,6 @@
 #include "../inc/Server.hpp"
 
 void Server::handlePrivMsg(const std::string& line, int clientFd) {
-    std::cout << "line " << line << std::endl; 
     std::string clientName = getClientByFd(clientFd);
     std::vector<std::string> cmd = splitArg(line, ' ');
     if(cmd.size() < 3){
@@ -14,20 +13,6 @@ void Server::handlePrivMsg(const std::string& line, int clientFd) {
     std::string msg ;
     for(size_t i = 2; i < cmd.size();++i){
         msg += cmd[i] +' ';   
-    }
-    if (msg.find("DCC SEND") == 0) {
-        // Encadrer avec \001
-        std::string dccMessage = "\001" + msg + "\001";
-
-        Client* targetClient = getClientByName(target);
-        if (targetClient) {
-            std::cout << "test\n";
-            std::string response = ":" + clientName + " PRIVMSG " + target + " " + dccMessage + "\r\n";
-            send(targetClient->getFd(), response.c_str(), response.size(), 0);
-        } else {
-            std::string response = ":server_name 401 " + clientName + " " + target + " :No such nick/channel\r\n";
-            send(clientFd, response.c_str(), response.size(), 0);
-        }
     }
     if (target[0] == '#' ) {
         Channel* channel = getChannelByName(target);
@@ -43,12 +28,12 @@ void Server::handlePrivMsg(const std::string& line, int clientFd) {
     }else {  
     Client* targetClient = getClientByName(target);
     if (targetClient) {
-        std::string response = ":" + clientName + " PRIVMSG " + target + " :" + msg + "\r\n";
+        std::string response = ":" + clientName + " PRIVMSG " + target + " " + msg + "\r\n";
         send(targetClient->getFd(), response.c_str(), response.size(), 0);
     } else {
         Channel* channel = getChannelByName(target);
         if (channel) {
-            std::string response = ":" + clientName + " PRIVMSG " + target + " :" + msg + "\r\n";
+            std::string response = ":" + clientName + " PRIVMSG " + target + " " + msg + "\r\n";
             channel->broadcastMessage(targetClient, msg);
         } else {
             std::string response = ":server_name 401 " + clientName + " " + target + " :No such nick/channel\r\n";
