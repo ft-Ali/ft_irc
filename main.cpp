@@ -8,20 +8,21 @@ int main (int c, char **v)
 		return 1;
 	}
 	else {
+
         try{
-		Server server(atoi(v[1]), v[2]);
-        signal(SIGINT, server.signalHandler);
-        signal(SIGQUIT, server.signalHandler);
-        // std::cout << "Server started mdp " << v[2] << std::endl;
-        server.serverInit();
-        server.serverLoop();}
+            int port = atoi(v[1]);
+            if(port <= 1023 || port > 65535)
+                throw(std::runtime_error("No valid port")); 
+            Server server(atoi(v[1]), v[2]);
+            signal(SIGINT, server.signalHandler);
+            signal(SIGQUIT, server.signalHandler);
+            server.serverInit();
+            server.serverLoop();
+        }
         catch(const std::exception &e){
             std::cerr << e.what() << std::endl;
         }
-
-        
 	}
-
 	return 0;
 }
 

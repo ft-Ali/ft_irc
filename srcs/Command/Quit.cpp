@@ -20,8 +20,8 @@ void Server::handleQuit(int clientFd, Client *client, bool free) {
     _clientUsers.erase(clientFd);
     _clientNicks.erase(clientFd);
 
-    std::string response = "Goodbye!\n";
-    send(clientFd, response.c_str(), response.size(), 0);
+    // std::string response = "Goodbye!\n";
+    // send(clientFd, response.c_str(), response.size(), 0);
     if (free)
         closeClient(clientFd);
 }

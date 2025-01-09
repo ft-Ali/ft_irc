@@ -77,9 +77,9 @@ void Server::clientToOperator(Client *client,Channel *channel){
   std::string namesResponse = ":[IRC] 353 " + client->getNickName() + " = " + channel->getName() + " :";
     const std::vector<Client*> members = channel->getMembers();
     for (size_t i = 0; i < members.size(); ++i) {
-        if (!members[i]->hasValidHost()) {
-            continue;
-        }
+        // if (!members[i]->hasValidHost()) {
+        //     continue;
+        // }
         if (channel->checkOperatorList(members[i])) {
             namesResponse += "@";
         }
@@ -104,7 +104,6 @@ void	Server::checkRestriction(Channel *channel, Client *client, std::string &key
         send(client->getFd(), response.c_str(), response.size(), 0);
         return;
     }
-
     if (channel->getInvitOnly() && !channel->checkWhiteList(client)) {
         std::string response = ":[IRC] 441 " + client->getNickName()+ " " + channel->getName() + " :You are not invited(+i)\r\n";
         send(client->getFd(), response.c_str(), response.size(), 0);

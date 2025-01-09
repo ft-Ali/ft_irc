@@ -24,8 +24,9 @@ Channel::~Channel(){}
 void Channel::setInvitOnly(bool actived){
 	if(actived)
 		_invitOnly = true;
-	else
+	else{
 		_invitOnly = false;
+		_whiteList.clear();}
 }
 
 void Channel::setTopic(std::string &topicName){

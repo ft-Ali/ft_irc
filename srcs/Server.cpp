@@ -22,13 +22,15 @@ void Server::handlePrivMsg(const std::string& line, int clientFd) {
                 clientName = "@" + clientName;
             channel->broadcastMessage(client, msg);
         } else {
-            std::string response = ":server_name 403 " + clientName + " " + target + " :No such channel\r\n";
+            std::string response = ":[IRC] 403 " + clientName + " " + target + " :No such channel\r\n";
             send(clientFd, response.c_str(), response.size(), 0);
         }
     }else {  
     Client* targetClient = getClientByName(target);
+    Client* client = getClientByName(clientName);
+
     if (targetClient) {
-        std::string response = ":" + clientName + " PRIVMSG " + target + " " + msg + "\r\n";
+        std::string response = ":" + client->getNickName() + "!" + client->getNickName() + "@"+ client->getIpaddr()+ " PRIVMSG " + target + " " + msg + "\r\n";
         send(targetClient->getFd(), response.c_str(), response.size(), 0);
     } else {
         Channel* channel = getChannelByName(target);
@@ -36,7 +38,7 @@ void Server::handlePrivMsg(const std::string& line, int clientFd) {
             std::string response = ":" + clientName + " PRIVMSG " + target + " " + msg + "\r\n";
             channel->broadcastMessage(targetClient, msg);
         } else {
-            std::string response = ":server_name 401 " + clientName + " " + target + " :No such nick/channel\r\n";
+            std::string response = ":[IRC] 401 " + clientName + " " + target + " :No such nick/channel\r\n";
             send(clientFd, response.c_str(), response.size(), 0);
         }
     }
@@ -136,7 +138,6 @@ Server* Server::instance = NULL;
 void Server::closeServer() {
 if (_serSocketFd != -1) {
     close(_serSocketFd);
-    std::cout << "Server socket closed." << std::endl;
 }
 for (size_t i = 0; i < fds.size(); ++i) {
     close(fds[i].fd);
@@ -218,15 +219,19 @@ void Server::handleClientMessage(int index) {
         return;
     }
 
-    buffer[ret] = '\0'; 
-    std::string message(buffer);
+    buffer[ret] = '\0';
+    _clientBuffers[clientFd] += buffer; 
+    std::string &message(_clientBuffers[clientFd]);
     std::cout << message << std::endl;
 
     std::istringstream stream(message);
-    std::string line;
 
-    while (std::getline(stream, line)) {
-        line.erase(line.find_last_not_of("\r\n") + 1);
+    while (1) {
+        std::size_t pos = message.find_first_of("\r\n");
+        if (pos == std::string::npos)
+            break;
+        std::string line = message.substr(0, pos);
+        message = message.substr(pos + 1, std::string::npos);
         if (line.empty())
             continue;
 
@@ -301,10 +306,11 @@ void Server::disconnectClient(int clientFd, size_t index) {
             break;
         }
     }
+    _clientBuffers.erase(clientFd);
 }
 
 void Server::handleUnknownCommand(Client *client, const std::string &line) {
-    std::string response = ":server_name 421 " + client->getNickName() + " '" + line + "' :Unknown command\r\n";
+    std::string response = ":[IRC] 421 " + client->getNickName() + " '" + line + "' :Unknown command\r\n";
     send(client->getFd(), response.c_str(), response.size(), 0);
 }
 

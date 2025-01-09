@@ -39,6 +39,8 @@ class Server {
 		std::map<int, std::string> _clientUsers; //-> map of client fds and users
 		std::map<int, std::string> _clientNicks; //-> map of client fds and nicks
 		std::string _ip;
+		std::map<int, std::string> _clientBuffers;
+
 		bool _isRunning;
 	public:
 		Server(int port, std::string password) : _port(port), _password(password), _serSocketFd(-1), _isConnected(false), fds(0) {
@@ -96,9 +98,7 @@ class Server {
 		void handleUnknownCommand(Client *client, const std::string &line);
 		void sendError(int clientFd, const std::string &message);
 		void handlePing(int clientFd, const std::string &line);
-		void handleDCCSend(int clientFd, const std::string& line);
-		void receiveDCCFile(const std::string& fileName, const std::string& ip, int port, size_t fileSize);
-	void handleDCCMessage(int clientFd, const std::string& msg);
+	void processCommand(int clientFd, Client *client, int index);
 };
 std::vector<std::string> splitArg(const std::string &str, char delimiter);
 void sendClientResponse(Client *client, const std::string &response);

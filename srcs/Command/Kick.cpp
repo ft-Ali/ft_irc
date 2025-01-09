@@ -34,7 +34,7 @@ void Server::handleKick(Client *client, std::string command){
         return;
     }
     
-    std::string response = ":" + client->getNickName() + " KICK " + channel->getName() + " " + target->getNickName();
+    std::string response = ":" + client->getNickName() + "!" + client->getNickName() + "@"+ client->getIpaddr()+ " KICK " + channel->getName() +  "\r\n";
     if (!message.empty()) {
         response += " :" + message;
     }
